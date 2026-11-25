@@ -9,7 +9,7 @@ export const metadata = { title: "Reset password", robots: { index: false, follo
 async function Inner({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const token = (await searchParams).token ?? "";
   await connection(); // token expiry reads the clock, so this must run at request time
-  if (!token || !resetTokenValid(token)) {
+  if (!token || !(await resetTokenValid(token))) {
     return (
       <div className="card mx-auto max-w-md space-y-4 p-8 md:p-10">
         <h1 className="text-3xl font-bold">Link not valid</h1>

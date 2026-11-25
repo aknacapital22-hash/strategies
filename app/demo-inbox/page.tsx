@@ -10,7 +10,7 @@ export const metadata = { title: "Demo inbox", robots: { index: false, follow: f
 async function Mails() {
   await connection(); // the inbox changes with every reset request, so never bake it into a prerender
   if (!demoEnabled()) notFound();
-  const mails = inbox();
+  const mails = await inbox();
   return mails.length === 0 ? (
     <p className="card p-6 text-pmuted">No messages yet. Request a reset link from the forgot password page.</p>
   ) : (

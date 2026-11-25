@@ -35,7 +35,7 @@ export async function getUser(): Promise<PublicUser | null> {
   const token = (await cookies()).get(COOKIE)?.value;
   await connection(); // the expiry check reads the clock, so this must run at request time, never in a prerender
   const uid = readToken(token);
-  const u = uid ? findById(uid) : null;
+  const u = uid ? await findById(uid) : null;
   return u ? { id: u.id, name: u.name, email: u.email, subs: activeSubs(u), subExp: u.subExp ?? {}, role: u.role === "admin" ? "admin" : "user", phone: u.phone ?? "" } : null;
 }
 

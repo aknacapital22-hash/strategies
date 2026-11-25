@@ -42,7 +42,7 @@ export async function login(_: FormState, fd: FormData): Promise<FormState> {
   const byEmail = `${ip}|${email}`, byVisitor = `ip:${ip}`;
   const wait = Math.max(minutesLeft(byEmail, PER_EMAIL), minutesLeft(byVisitor, PER_VISITOR));
   if (wait) return { error: `Too many attempts. Try again in ${wait} minute${wait > 1 ? "s" : ""}, or reset your password.` };
-  const u = findByEmail(email);
+  const u = await findByEmail(email);
   if (!u) burnPasswordCheck(password);
   if (!u || !verifyPassword(u, password)) {
     noteFail(byEmail);
@@ -65,7 +65,7 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const problem = passwordProblem(password);
   if (problem) return { error: problem };
   if (password !== str(fd, "confirm")) return { error: "The two passwords do not match." };
-  const made = createUser(name, email, password, phone);
+  const made = await createUser(name, email, password, phone);
   if ("error" in made) return { error: made.error === "email" ? "An account with this email already exists. Try logging in." : "An account with this mobile number already exists. Try logging in." };
   await startSession(made.user.id);
   redirect(safeNext(str(fd, "next")) ?? "/account");
@@ -79,7 +79,7 @@ export async function logout() {
 export async function forgotPassword(_: FormState, fd: FormData): Promise<FormState> {
   const email = str(fd, "email").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { error: "Enter a valid email address." };
-  createReset(email); // same reply whether or not the account exists, so the form cannot be used to probe emails
+  await createReset(email); // same reply whether or not the account exists, so the form cannot be used to probe emails
   return { ok: "If an account exists for that email, a reset link has been sent. It works for 30 minutes." };
 }
 
@@ -89,7 +89,7 @@ export async function resetPassword(_: FormState, fd: FormData): Promise<FormSta
   const problem = passwordProblem(password);
   if (problem) return { error: problem };
   if (password !== str(fd, "confirm")) return { error: "The two passwords do not match." };
-  if (!consumeReset(token, password)) return { error: "This reset link is invalid or has expired. Request a new one." };
+  if (!(await consumeReset(token, password))) return { error: "This reset link is invalid or has expired. Request a new one." };
   redirect("/login?reset=1");
 }
 
@@ -99,7 +99,7 @@ export async function requestSubscription(fd: FormData) {
   const slug = str(fd, "slug");
   const plan: PlanId = isPlan(str(fd, "plan")) ? (str(fd, "plan") as PlanId) : "year";
   if (!user) redirect(`/login?next=${encodeURIComponent(`/subscribe/${slug}`)}`);
-  const r = createRequest(user.id, slug, plan);
+  const r = await createRequest(user.id, slug, plan);
   if (!r) redirect("/strategies");
   revalidatePath("/account");
   redirect(`/subscribe/${slug}/pay?r=${r.id}`);
@@ -110,7 +110,7 @@ export async function addUtr(_: FormState, fd: FormData): Promise<FormState> {
   const user = await getUser();
   if (!user) return { error: "Please log in again." };
   const utr = str(fd, "utr").trim();
-  const saved = setRequestUtr(str(fd, "id"), user.id, utr);
+  const saved = await setRequestUtr(str(fd, "id"), user.id, utr);
   if (saved === "used") return { error: "This transaction ID is already attached to another request. Check it, or WhatsApp us." };
   if (saved !== "ok") return { error: "Enter the transaction ID from your UPI app (6 to 30 letters and numbers)." };
   revalidatePath("/admin");
@@ -123,7 +123,7 @@ export async function unsubscribe(fd: FormData) {
   const slug = str(fd, "slug");
   const next = safeNext(str(fd, "next")) ?? "/account";
   if (!user) redirect(`/login?next=${encodeURIComponent(next)}`);
-  setSubscription(user.id, slug, false);
+  await setSubscription(user.id, slug, false);
   revalidatePath("/", "layout");
   redirect(next);
 }

@@ -16,7 +16,7 @@ async function Account() {
   if (!user) redirect("/login?next=/account");
   const list = [...strategies].sort((a, b) => b.cagr - a.cagr);
   const mine = list.filter((s) => user.subs.includes(s.slug));
-  const reqs = requestsFor(user.id); // newest first
+  const reqs = await requestsFor(user.id); // newest first
   const pending = new Map(reqs.filter((r) => r.status === "pending").map((r) => [r.slug, r]));
   const rejected = new Map(reqs.filter((r) => r.status === "rejected").reverse().map((r) => [r.slug, r]));
 

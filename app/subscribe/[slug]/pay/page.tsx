@@ -21,7 +21,7 @@ async function Inner({ params, searchParams }: { params: Promise<{ slug: string 
   if (!user) redirect(`/login?next=${encodeURIComponent(`/subscribe/${slug}`)}`);
 
   // Only the owner of a request can open its page.
-  const req = (r ? getRequest(r) : requestsFor(user.id).find((x) => x.slug === slug)) ?? null;
+  const req = (r ? await getRequest(r) : (await requestsFor(user.id)).find((x) => x.slug === slug)) ?? null;
   if (!req || req.userId !== user.id || req.slug !== slug) notFound();
 
   const plan = PLANS[req.plan];

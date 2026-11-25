@@ -34,9 +34,8 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
   const status = sp.status === "all" ? "all" : "pending";
   const q = (sp.q ?? "").trim().toLowerCase().slice(0, 60);
 
-  const users = allUsers();
+  const [users, reqs] = await Promise.all([allUsers(), allRequests()]);
   const byId = new Map(users.map((u) => [u.id, u]));
-  const reqs = allRequests();
   const members = users.filter((u) => u.role !== "admin");
   const subscribers = members.filter((u) => u.subs.length > 0);
   const others = members.filter((u) => u.subs.length === 0);

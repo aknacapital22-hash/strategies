@@ -18,7 +18,7 @@ async function Baskets({ searchParams }: { searchParams: Promise<SP> }) {
   const user = await getUser();
   const asked = (await searchParams).show ?? "";
   const show = ["subscribed", "pending", "not"].includes(asked) ? asked : "all";
-  const pending = new Map((user ? requestsFor(user.id) : []).filter((r) => r.status === "pending").map((r) => [r.slug, r]));
+  const pending = new Map((user ? await requestsFor(user.id) : []).filter((r) => r.status === "pending").map((r) => [r.slug, r]));
   const status = (slug: string) => (user?.subs.includes(slug) ? "subscribed" : pending.has(slug) ? "pending" : "not");
 
   const all = [...strategies].sort((a, b) => b.cagr - a.cagr);

@@ -16,18 +16,18 @@ async function admin() {
 
 export async function approveRequest(fd: FormData) {
   const a = await admin();
-  decideRequest(str(fd, "id"), true, a.id);
+  await decideRequest(str(fd, "id"), true, a.id);
   revalidatePath("/", "layout");
 }
 
 export async function rejectRequest(fd: FormData) {
   const a = await admin();
-  decideRequest(str(fd, "id"), false, a.id, str(fd, "note").trim() || undefined);
+  await decideRequest(str(fd, "id"), false, a.id, str(fd, "note").trim() || undefined);
   revalidatePath("/", "layout");
 }
 
 export async function revokeSubscription(fd: FormData) {
   await admin();
-  setSubscription(str(fd, "userId"), str(fd, "slug"), false);
+  await setSubscription(str(fd, "userId"), str(fd, "slug"), false);
   revalidatePath("/", "layout");
 }
