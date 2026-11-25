@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 import strategies from "../strategies.json";
 import { PLANS, type PlanId } from "../pricing";
 import { query, transaction, uniqueViolation } from "../db";
+import { callBackend, usesRemoteBackend } from "../backend";
 
 export type User = { id: string; name: string; email: string; salt: string; hash: string; subs: string[]; subExp?: Record<string, string>; role?: "admin" | "user"; phone?: string; created: string };
 export type Mail = { to: string; subject: string; link: string; at: string };
@@ -66,9 +67,12 @@ async function findUser(where: string, value: string): Promise<User | null> {
   return r ? toUser(r) : null;
 }
 
-export const findByEmail = (email: string) => findUser("u.email", email.trim().toLowerCase());
-export const findById = async (id: string) => (isUuid(id) ? findUser("u.id", id) : null);
-export const findByPhone = (phone: string) => findUser("u.phone", phone);
+export const findByEmail = async (email: string): Promise<User | null> =>
+  usesRemoteBackend() ? callBackend("findByEmail", [email]) : findUser("u.email", email.trim().toLowerCase());
+export const findById = async (id: string): Promise<User | null> => {
+  if (usesRemoteBackend()) return callBackend("findById", [id]);
+  return isUuid(id) ? findUser("u.id", id) : null;
+};
 
 /** Slugs this user has paid up for right now (expiry still in the future). */
 export function activeSubs(u: User, now = Date.now()): string[] {
@@ -88,6 +92,7 @@ export function burnPasswordCheck(pw: string) {
 
 /** Creates an account, or says why not: the email or the mobile number is already used. */
 export async function createUser(name: string, email: string, password: string, phone: string): Promise<{ user: User } | { error: "email" | "phone" }> {
+  if (usesRemoteBackend()) return callBackend("createUser", [name, email, password, phone]);
   const salt = crypto.randomBytes(16).toString("hex");
   const id = crypto.randomUUID();
   try {
@@ -107,6 +112,7 @@ export async function createUser(name: string, email: string, password: string, 
 const GRANT_CONFLICT = "on conflict (user_id, slug) do update set expires = greatest(subscriptions.expires, now()) + (excluded.expires - now())";
 
 export async function setSubscription(userId: string, slug: string, on: boolean, plan: PlanId = "year"): Promise<boolean> {
+  if (usesRemoteBackend()) return callBackend("setSubscription", [userId, slug, on, plan]);
   if (!isUuid(userId)) return false;
   if (!on) {
     await query("delete from subscriptions where user_id = $1 and slug = $2", [userId, slug]);
@@ -126,6 +132,7 @@ export async function setSubscription(userId: string, slug: string, on: boolean,
 
 /** Creates a single-use reset link valid for 30 minutes and "emails" it to the demo inbox. */
 export async function createReset(email: string): Promise<boolean> {
+  if (usesRemoteBackend()) return callBackend("createReset", [email]);
   const u = await findByEmail(email);
   if (!u) return false;
   const token = crypto.randomBytes(32).toString("hex");
@@ -139,10 +146,12 @@ export async function createReset(email: string): Promise<boolean> {
 }
 
 export async function resetTokenValid(token: string): Promise<boolean> {
+  if (usesRemoteBackend()) return callBackend("resetTokenValid", [token]);
   return (await query("select 1 from password_resets where token_hash = $1 and expires > now()", [sha(token)])).length > 0;
 }
 
 export async function consumeReset(token: string, newPassword: string): Promise<boolean> {
+  if (usesRemoteBackend()) return callBackend("consumeReset", [token, newPassword]);
   const salt = crypto.randomBytes(16).toString("hex");
   const hash = hashPw(newPassword, salt);
   return transaction(async (c) => {
@@ -157,6 +166,7 @@ export async function consumeReset(token: string, newPassword: string): Promise<
 }
 
 export async function inbox(): Promise<Mail[]> {
+  if (usesRemoteBackend()) return callBackend("inbox");
   const rows = await query<{ recipient: string; subject: string; link: string; at: Date }>("select recipient, subject, link, at from demo_inbox order by id desc limit 10");
   return rows.map((r) => ({ to: r.recipient, subject: r.subject, link: r.link, at: iso(r.at) }));
 }
@@ -175,6 +185,7 @@ const toRequest = (r: ReqRow): SubRequest => ({
 
 /** A user asks for a plan. One open request per user and basket: asking again updates it. */
 export async function createRequest(userId: string, slug: string, plan: PlanId): Promise<SubRequest | null> {
+  if (usesRemoteBackend()) return callBackend("createRequest", [userId, slug, plan]);
   if (!SLUGS.has(slug) || !PLANS[plan] || !isUuid(userId)) return null;
   const [r] = await query<ReqRow>(
     `insert into requests (id, user_id, slug, plan, amount)
@@ -187,19 +198,23 @@ export async function createRequest(userId: string, slug: string, plan: PlanId):
 }
 
 export async function getRequest(id: string): Promise<SubRequest | null> {
+  if (usesRemoteBackend()) return callBackend("getRequest", [id]);
   if (!isUuid(id)) return null;
   const [r] = await query<ReqRow>("select * from requests where id = $1", [id]);
   return r ? toRequest(r) : null;
 }
 export async function requestsFor(userId: string): Promise<SubRequest[]> {
+  if (usesRemoteBackend()) return callBackend("requestsFor", [userId]);
   return (await query<ReqRow>("select * from requests where user_id = $1 order by created desc", [userId])).map(toRequest);
 }
 export async function allRequests(): Promise<SubRequest[]> {
+  if (usesRemoteBackend()) return callBackend("allRequests");
   return (await query<ReqRow>("select * from requests order by created desc limit 1000")).map(toRequest);
 }
 
 /** The user adds the UPI transaction reference of their payment, so the admin can match it. A reference can back only one request. */
 export async function setRequestUtr(id: string, userId: string, utr: string): Promise<"ok" | "invalid" | "used"> {
+  if (usesRemoteBackend()) return callBackend("setRequestUtr", [id, userId, utr]);
   if (!/^[A-Za-z0-9]{6,30}$/.test(utr) || !isUuid(id)) return "invalid";
   try {
     const rows = await query("update requests set utr = $3 where id = $1 and user_id = $2 and status = 'pending' returning id", [id, userId, utr.toUpperCase()]);
@@ -212,6 +227,7 @@ export async function setRequestUtr(id: string, userId: string, utr: string): Pr
 
 /** Admin decision. Approving switches the plan on (adding time to any left), rejecting records why. */
 export async function decideRequest(id: string, approve: boolean, adminId: string, note?: string): Promise<boolean> {
+  if (usesRemoteBackend()) return callBackend("decideRequest", [id, approve, adminId, note]);
   if (!isUuid(id)) return false;
   // One transaction: the request is only marked approved if the plan is switched on, and it can only be decided once.
   return transaction(async (c) => {
@@ -229,8 +245,14 @@ export async function decideRequest(id: string, approve: boolean, adminId: strin
   });
 }
 
-/** Everyone, for the admin panel. Password data never leaves this module. */
-export async function allUsers() {
+export type AdminUser = {
+  id: string; name: string; email: string; phone: string; role: "admin" | "user"; created: string;
+  subs: { slug: string; expires: string }[]; expired: string[];
+};
+
+/** Everyone, for the admin panel. Password data is left out. */
+export async function allUsers(): Promise<AdminUser[]> {
+  if (usesRemoteBackend()) return callBackend("allUsers");
   const rows = await query<UserRow>(`${USER_SELECT} order by u.created`);
   return rows.map(toUser).map((u) => {
     const active = activeSubs(u);
