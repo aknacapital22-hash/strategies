@@ -48,7 +48,10 @@ export default function Header({ auth, authMobile }: { auth: ReactNode; authMobi
 
   function toggleTheme() {
     const next = dark ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
+    const apply = () => { document.documentElement.dataset.theme = next; };
+    // Cross-fade the whole page between themes where the browser can; otherwise switch at once.
+    if (document.startViewTransition) document.startViewTransition(apply);
+    else apply();
     try { localStorage.setItem("theme", next); } catch {}
   }
 

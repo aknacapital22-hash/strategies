@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { forgotPassword, login, resetPassword, signup, type FormState } from "@/app/auth/actions";
+import { forgotPassword, login, signup, type FormState } from "@/app/auth/actions";
 
 const field = "mt-1.5 w-full rounded-xl border border-pline bg-page px-4 py-3 outline-none focus:border-[var(--accent-ink)]";
 
@@ -73,9 +73,41 @@ export function LoginForm({ next, notice, demo }: { next?: string; notice?: stri
   );
 }
 
+/** The emailed code, plus the hidden values that tie it to this browser's request. */
+function CodeFields({ step }: { step: { ticket: string; email: string } }) {
+  return (
+    <>
+      <input type="hidden" name="ticket" value={step.ticket} />
+      <input type="hidden" name="email" value={step.email} />
+      <label className="block text-sm font-medium">
+        6-digit code
+        <input name="code" required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} title="The 6 digits from the email" className={`${field} num text-center text-2xl tracking-[0.4em]`} />
+      </label>
+    </>
+  );
+}
+
+const link = "font-medium text-aink hover:underline";
+
 export function SignupForm({ next }: { next?: string }) {
   const [state, action] = useActionState(signup, undefined);
   const [v, setV] = useState({ name: "", email: "", phone: "" });
+  if (state?.step) {
+    return (
+      <Shell title="Check your email" sub={`We sent a code to ${state.step.email}. It works for 10 minutes. Check your spam folder too.`}>
+        <form key="code" action={action} className="space-y-5">
+          <input type="hidden" name="next" value={next ?? ""} />
+          <CodeFields step={state.step} />
+          <Msg s={state} />
+          <button className="btn btn-primary w-full" name="intent" value="verify">Verify and create account</button>
+          <div className="flex justify-between gap-4 text-sm">
+            <button className={link} name="intent" value="resend" formNoValidate>Send a new code</button>
+            <button className={link} name="intent" value="restart" formNoValidate>Change my details</button>
+          </div>
+        </form>
+      </Shell>
+    );
+  }
   return (
     <Shell title="Create your account" sub="Free to join. Subscribe to a basket to see its holdings.">
       <form action={action} className="space-y-5">
@@ -106,7 +138,7 @@ export function SignupForm({ next }: { next?: string }) {
           <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={field} />
         </label>
         <Msg s={state} />
-        <Submit>Create account</Submit>
+        <Submit>Email me a code</Submit>
       </form>
       <p className="text-center text-sm text-pmuted">Already have an account? <Link href={`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-aink hover:underline">Log in</Link></p>
     </Shell>
@@ -116,44 +148,38 @@ export function SignupForm({ next }: { next?: string }) {
 export function ForgotForm() {
   const [state, action] = useActionState(forgotPassword, undefined);
   const [email, setEmail] = useState("");
+  if (state?.step) {
+    return (
+      <Shell title="Choose a new password" sub={`If an account exists for ${state.step.email}, we have sent it a code. It works for 10 minutes. Check your spam folder too.`}>
+        <form key="code" action={action} className="space-y-5">
+          <CodeFields step={state.step} />
+          <label className="block text-sm font-medium">
+            New password
+            <input name="password" type="password" required minLength={8} autoComplete="new-password" className={field} />
+            <span className="mt-1 block text-xs font-normal text-pmuted">At least 8 characters, with a letter and a number.</span>
+          </label>
+          <label className="block text-sm font-medium">
+            Confirm new password
+            <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={field} />
+          </label>
+          <Msg s={state} />
+          <button className="btn btn-primary w-full" name="intent" value="verify">Save new password</button>
+          <p className="text-center text-sm"><button className={link} name="intent" value="restart" formNoValidate>No code? Request another</button></p>
+        </form>
+      </Shell>
+    );
+  }
   return (
-    <Shell title="Forgot your password?" sub="Enter your email and we will send you a link to choose a new one.">
-      <form action={action} className="space-y-5">
+    <Shell title="Forgot your password?" sub="Enter your email and we will send you a code to choose a new one.">
+      <form key="email" action={action} className="space-y-5">
         <label className="block text-sm font-medium">
           Email
           <input name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={field} />
         </label>
         <Msg s={state} />
-        <Submit>Send reset link</Submit>
+        <Submit>Email me a code</Submit>
       </form>
-      {state?.ok && (
-        <p className="rounded-xl border border-dashed border-pline p-4 text-sm text-pmuted">
-          Demo build: no real email is sent. Open the <Link href="/demo-inbox" className="font-medium text-aink hover:underline">demo inbox</Link> to find your link.
-        </p>
-      )}
       <p className="text-center text-sm"><Link href="/login" className="font-medium text-aink hover:underline">← Back to log in</Link></p>
-    </Shell>
-  );
-}
-
-export function ResetForm({ token }: { token: string }) {
-  const [state, action] = useActionState(resetPassword, undefined);
-  return (
-    <Shell title="Choose a new password">
-      <form action={action} className="space-y-5">
-        <input type="hidden" name="token" value={token} />
-        <label className="block text-sm font-medium">
-          New password
-          <input name="password" type="password" required minLength={8} autoComplete="new-password" className={field} />
-          <span className="mt-1 block text-xs font-normal text-pmuted">At least 8 characters, with a letter and a number.</span>
-        </label>
-        <label className="block text-sm font-medium">
-          Confirm new password
-          <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={field} />
-        </label>
-        <Msg s={state} />
-        <Submit>Save new password</Submit>
-      </form>
     </Shell>
   );
 }

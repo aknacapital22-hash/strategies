@@ -49,7 +49,26 @@ create table if not exists password_resets (
 );
 create index if not exists password_resets_user on password_resets (user_id);
 
--- Stands in for email while there is no mail service.
+-- Emailed one-time codes: pending sign-ups and password resets. Only hashes of the ticket, code and password are kept.
+create table if not exists email_codes (
+  ticket_hash text primary key,
+  purpose     text not null check (purpose in ('signup', 'reset')),
+  email       text not null,
+  salt        text not null,
+  code_hash   text not null,
+  attempts    integer not null default 0,
+  data        jsonb not null,
+  expires     timestamptz not null
+);
+
+-- Counters behind the limits on emailed codes and log-in attempts. Keys are hashed.
+create table if not exists rate_limits (
+  key      text primary key,
+  n        integer not null,
+  reset_at timestamptz not null
+);
+
+-- Stands in for email during local development, when no mail key is set.
 create table if not exists demo_inbox (
   id        bigint generated always as identity primary key,
   recipient text not null,

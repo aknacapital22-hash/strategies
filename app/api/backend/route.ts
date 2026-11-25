@@ -1,14 +1,16 @@
 // The backend API (served by Render). Only the frontend server may call it, using the shared BACKEND_API_KEY.
 // It trusts that caller completely: the frontend checks who is signed in and who is an admin before calling.
 import crypto from "node:crypto";
-import { allRequests, allUsers, consumeReset, createRequest, createReset, createUser, decideRequest, demoEnabled, findByEmail, findById, getRequest, inbox, requestsFor, resetTokenValid, setRequestUtr, setSubscription } from "@/lib/auth/store";
+import { allRequests, allUsers, createRequest, decideRequest, demoEnabled, findByEmail, findById, getRequest, inbox, requestsFor, setRequestUtr, setSubscription } from "@/lib/auth/store";
+import { completeReset, loginAttempt, loginSucceeded, resendSignupCode, startReset, startSignup, verifySignup } from "@/lib/auth/otp";
 import { usesRemoteBackend } from "@/lib/backend";
 
 // Only the functions listed here can be called.
 const OPERATIONS = new Map(
   Object.entries({
-    allRequests, allUsers, consumeReset, createRequest, createReset, createUser, decideRequest, findByEmail, findById,
-    getRequest, inbox, requestsFor, resetTokenValid, setRequestUtr, setSubscription,
+    allRequests, allUsers, createRequest, decideRequest, findByEmail, findById, getRequest, inbox, requestsFor,
+    setRequestUtr, setSubscription,
+    completeReset, loginAttempt, loginSucceeded, resendSignupCode, startReset, startSignup, verifySignup,
   }) as [string, (...args: unknown[]) => Promise<unknown>][],
 );
 
@@ -30,8 +32,8 @@ export async function POST(req: Request) {
   const run = typeof body?.op === "string" ? OPERATIONS.get(body.op) : undefined;
   const args = body?.args;
   const simple = (a: unknown) => a === null || typeof a === "string" || typeof a === "boolean";
-  if (!run || !Array.isArray(args) || args.length > 4 || !args.every(simple)) return reply(400, { error: "bad request" });
-  // The demo inbox lists password reset links, so the backend applies its own switch too.
+  if (!run || !Array.isArray(args) || args.length > 5 || !args.every(simple)) return reply(400, { error: "bad request" });
+  // The demo inbox lists emailed codes, so the backend applies its own switch too.
   if (body?.op === "inbox" && !demoEnabled()) return reply(403, { error: "forbidden" });
 
   try {

@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/engine", destination: "/strategies", permanent: true },
+      { source: "/reset-password", destination: "/forgot-password", permanent: false },
     ];
   },
   cacheComponents: true,

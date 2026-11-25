@@ -4,6 +4,7 @@ import FeeCalculator from "@/components/FeeCalculator";
 import StrategyRail from "@/components/StrategyRail";
 import Faq from "@/components/Faq";
 import Tabs from "@/components/Tabs";
+import GrowthArt from "@/components/GrowthArt";
 import StickyCta from "@/components/StickyCta";
 import { strategies, growthSeries, minimumRange } from "@/lib/strategies";
 import { shortLabel } from "@/lib/minimum";
@@ -150,7 +151,9 @@ export default function Home() {
       </div>
 
       {/* Hero: copy + live preview side by side, so the first screen carries the whole pitch */}
-      <section className="wrap grid items-center gap-8 pb-8 pt-8 md:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-12">
+      <div className="art-stage">
+      <GrowthArt series={list} lead={hero.slug} />
+      <section className="wrap grid items-center gap-8 pb-8 pt-8 md:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:py-20">
         <div>
           <h1 className="h1">The edge the index <span className="text-aink">never gives you.</span></h1>
           <p className="lead mt-4 max-w-lg">Rules-based quant models scan the market on a fixed calendar and hand you the trades to approve in your own demat. Every holding is visible, every trade is yours to approve.</p>
@@ -188,6 +191,8 @@ export default function Home() {
           <p className="mt-3 text-[11px] text-pmuted">Model, back tested. Not a promise of future returns.</p>
         </figure>
       </section>
+      <p className="wrap pb-2 text-right text-[11px] text-pmuted">Lines behind: all {list.length} strategies, model growth of ₹100 on one log scale. Back tested, not a promise of future returns.</p>
+      </div>
 
       {/* One tabbed panel replaces four stacked sections */}
       <section className="wrap defer py-8 md:py-10" aria-labelledby="explore">

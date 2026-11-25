@@ -4,57 +4,66 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { isPlan, type PlanId } from "@/lib/pricing";
-import { burnPasswordCheck, consumeReset, createRequest, createReset, createUser, findByEmail, setRequestUtr, setSubscription, verifyPassword } from "@/lib/auth/store";
+import { burnPasswordCheck, createRequest, findByEmail, setRequestUtr, setSubscription, verifyPassword } from "@/lib/auth/store";
+import { completeReset, loginAttempt, loginSucceeded, resendSignupCode, startReset, startSignup, verifySignup, type SendProblem } from "@/lib/auth/otp";
+import { usesRemoteBackend } from "@/lib/backend";
 import { EMAIL_RE, endSession, getUser, normalizePhone, passwordProblem, safeNext, startSession } from "@/lib/auth/session";
 
-export type FormState = { error?: string; ok?: string } | undefined;
+/** `step` is set while we are waiting for the emailed code. */
+export type FormState = { error?: string; ok?: string; step?: { ticket: string; email: string } } | undefined;
 
 const str = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? (fd.get(k) as string) : "");
 
-// Slows password guessing. Failures are counted per email AND per visitor address (5 for one email from one address,
-// 100 from one address across all emails, per 10 minutes), so one person guessing cannot lock the real owner out from
-// somewhere else. In memory, so it resets when the server restarts.
-const fails = new Map<string, { n: number; t: number }>();
-const WINDOW = 10 * 60 * 1000;
-const PER_EMAIL = 5;
-const PER_VISITOR = 100;
-
-function minutesLeft(key: string, max: number) {
-  const f = fails.get(key);
-  if (!f || Date.now() - f.t >= WINDOW || f.n < max) return 0;
-  return Math.max(1, Math.ceil((WINDOW - (Date.now() - f.t)) / 60000));
-}
-function noteFail(key: string) {
-  const f = fails.get(key);
-  fails.set(key, f && Date.now() - f.t < WINDOW ? { n: f.n + 1, t: f.t } : { n: 1, t: Date.now() });
-  if (fails.size > 5000) for (const [k, v] of fails) if (Date.now() - v.t >= WINDOW) fails.delete(k);
-}
 async function visitor() {
   const h = await headers();
-  return (h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip") || "local").slice(0, 45);
+  // Netlify (the frontend, which calls a separate backend) sets its own header with the real visitor address.
+  const netlify = usesRemoteBackend() ? h.get("x-nf-client-connection-ip") : null;
+  return (netlify || h.get("x-forwarded-for")?.split(",")[0].trim() || h.get("x-real-ip") || "local").slice(0, 45);
 }
+
+const SEND_PROBLEMS: Record<SendProblem | "mail", string> = {
+  wait: "A code was just requested. Wait a minute, then try again.",
+  limit: "Too many codes have been requested. Try again in an hour.",
+  mail: "We could not send the email just now. Please try again later.",
+};
+const TAKEN = {
+  email: "An account with this email already exists. Try logging in.",
+  phone: "An account with this mobile number already exists. Try logging in.",
+};
+const BAD_CODE = "That code is wrong or has expired. Check the latest email, or ask for a new code.";
 
 export async function login(_: FormState, fd: FormData): Promise<FormState> {
   const email = str(fd, "email").trim().toLowerCase();
   const password = str(fd, "password");
   if (!EMAIL_RE.test(email) || !password) return { error: "Enter your email and password." };
+  // Slows password guessing. Counted in the database, before the password is checked.
   const ip = await visitor();
-  const byEmail = `${ip}|${email}`, byVisitor = `ip:${ip}`;
-  const wait = Math.max(minutesLeft(byEmail, PER_EMAIL), minutesLeft(byVisitor, PER_VISITOR));
+  const wait = await loginAttempt(email, ip);
   if (wait) return { error: `Too many attempts. Try again in ${wait} minute${wait > 1 ? "s" : ""}, or reset your password.` };
   const u = await findByEmail(email);
   if (!u) burnPasswordCheck(password);
-  if (!u || !verifyPassword(u, password)) {
-    noteFail(byEmail);
-    noteFail(byVisitor);
-    return { error: "Email or password is incorrect." };
-  }
-  fails.delete(byEmail);
+  if (!u || !verifyPassword(u, password)) return { error: "Email or password is incorrect." };
+  await loginSucceeded(email, ip);
   await startSession(u.id);
   redirect(safeNext(str(fd, "next")) ?? "/account");
 }
 
 export async function signup(_: FormState, fd: FormData): Promise<FormState> {
+  const intent = str(fd, "intent");
+  if (intent === "restart") return undefined;
+  if (intent === "verify" || intent === "resend") {
+    const step = { ticket: str(fd, "ticket"), email: str(fd, "email") };
+    if (intent === "resend") {
+      const sent = await resendSignupCode(step.ticket, await visitor());
+      if (sent === "sent") return { step, ok: "We have sent a new code. Earlier codes no longer work." };
+      if (sent === "expired") return { error: "That sign-up has expired. Please fill in your details again." };
+      return { step, error: SEND_PROBLEMS[sent] };
+    }
+    const made = await verifySignup(step.ticket, str(fd, "code").trim());
+    if ("error" in made) return made.error === "code" ? { step, error: BAD_CODE } : { error: TAKEN[made.error] };
+    await startSession(made.userId);
+    redirect(safeNext(str(fd, "next")) ?? "/account");
+  }
   const name = str(fd, "name").trim();
   const email = str(fd, "email").trim().toLowerCase();
   const password = str(fd, "password");
@@ -65,10 +74,9 @@ export async function signup(_: FormState, fd: FormData): Promise<FormState> {
   const problem = passwordProblem(password);
   if (problem) return { error: problem };
   if (password !== str(fd, "confirm")) return { error: "The two passwords do not match." };
-  const made = await createUser(name, email, password, phone);
-  if ("error" in made) return { error: made.error === "email" ? "An account with this email already exists. Try logging in." : "An account with this mobile number already exists. Try logging in." };
-  await startSession(made.user.id);
-  redirect(safeNext(str(fd, "next")) ?? "/account");
+  const started = await startSignup(name, email, password, phone, await visitor());
+  if ("error" in started) return { error: started.error === "email" || started.error === "phone" ? TAKEN[started.error] : SEND_PROBLEMS[started.error] };
+  return { step: { ticket: started.ticket, email } };
 }
 
 export async function logout() {
@@ -77,23 +85,24 @@ export async function logout() {
 }
 
 export async function forgotPassword(_: FormState, fd: FormData): Promise<FormState> {
+  const intent = str(fd, "intent");
+  if (intent === "restart") return undefined;
+  if (intent === "verify") {
+    const step = { ticket: str(fd, "ticket"), email: str(fd, "email") };
+    const password = str(fd, "password");
+    const problem = passwordProblem(password);
+    if (problem) return { step, error: problem };
+    if (password !== str(fd, "confirm")) return { step, error: "The two passwords do not match." };
+    if (!(await completeReset(step.ticket, str(fd, "code").trim(), password))) return { step, error: BAD_CODE };
+    redirect("/login?reset=1");
+  }
   const email = str(fd, "email").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { error: "Enter a valid email address." };
-  await createReset(email); // same reply whether or not the account exists, so the form cannot be used to probe emails
-  return { ok: "If an account exists for that email, a reset link has been sent. It works for 30 minutes." };
+  const started = await startReset(email, await visitor());
+  if ("error" in started) return { error: SEND_PROBLEMS[started.error] };
+  return { step: { ticket: started.ticket, email } };
 }
 
-export async function resetPassword(_: FormState, fd: FormData): Promise<FormState> {
-  const token = str(fd, "token");
-  const password = str(fd, "password");
-  const problem = passwordProblem(password);
-  if (problem) return { error: problem };
-  if (password !== str(fd, "confirm")) return { error: "The two passwords do not match." };
-  if (!(await consumeReset(token, password))) return { error: "This reset link is invalid or has expired. Request a new one." };
-  redirect("/login?reset=1");
-}
-
-/** Starts a subscription request. Nothing is switched on here: an admin approves it after the UPI payment is checked. */
 export async function requestSubscription(fd: FormData) {
   const user = await getUser();
   const slug = str(fd, "slug");

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Outfit, Stack_Sans_Headline, Figtree, Geist } from "next/font/google";
 import "./globals.css";
+import "./art.css";
+import Spotlight from "@/components/Spotlight";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import { AuthNav, AuthNavMobile } from "@/components/AuthNav";
 import JsonLd from "@/components/JsonLd";
 import { SITE_NAME, SITE_URL, INDEXABLE, abs } from "@/lib/site";
@@ -59,7 +61,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             authMobile={<Suspense fallback={null}><AuthNavMobile /></Suspense>}
           />
         </Suspense>
-        <main id="main" className="flex-1">{children}</main>
+        <div className="scroll-thread" aria-hidden />
+        <Spotlight />
+        <main id="main" className="flex-1">
+          <ViewTransition default="page">{children}</ViewTransition>
+        </main>
         <Footer />
       </body>
     </html>

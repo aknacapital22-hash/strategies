@@ -29,7 +29,6 @@ export const DEMO = {
 export const demoEnabled = () => process.env.DEMO_INBOX === "1" || (process.env.DEMO_INBOX !== "0" && process.env.NODE_ENV !== "production");
 
 const hashPw = (pw: string, salt: string) => crypto.scryptSync(pw, salt, 64).toString("hex");
-const sha = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
 const iso = (d: Date | string) => new Date(d).toISOString();
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
@@ -79,6 +78,12 @@ export function activeSubs(u: User, now = Date.now()): string[] {
   return u.subs.filter((s) => u.subExp?.[s] && Date.parse(u.subExp[s]) > now);
 }
 
+/** A new salt and hash for a password. */
+export function hashPassword(pw: string) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  return { salt, hash: hashPw(pw, salt) };
+}
+
 export function verifyPassword(u: User, pw: string) {
   const a = Buffer.from(hashPw(pw, u.salt), "hex");
   const b = Buffer.from(u.hash, "hex");
@@ -88,22 +93,6 @@ export function verifyPassword(u: User, pw: string) {
 /** A dummy check so a wrong email takes about as long as a wrong password. */
 export function burnPasswordCheck(pw: string) {
   hashPw(pw, "0".repeat(32));
-}
-
-/** Creates an account, or says why not: the email or the mobile number is already used. */
-export async function createUser(name: string, email: string, password: string, phone: string): Promise<{ user: User } | { error: "email" | "phone" }> {
-  if (usesRemoteBackend()) return callBackend("createUser", [name, email, password, phone]);
-  const salt = crypto.randomBytes(16).toString("hex");
-  const id = crypto.randomUUID();
-  try {
-    await query("insert into users (id, name, email, phone, salt, hash) values ($1, $2, $3, $4, $5, $6)", [id, name.trim(), email.trim().toLowerCase(), phone, salt, hashPw(password, salt)]);
-  } catch (e) {
-    const rule = uniqueViolation(e); // the database enforces uniqueness, so two sign-ups at once cannot both win
-    if (rule === "users_email_key") return { error: "email" };
-    if (rule === "users_phone_key") return { error: "phone" };
-    throw e;
-  }
-  return { user: (await findById(id)) as User };
 }
 
 // ---------------------------------------------------------------- subscriptions
@@ -128,42 +117,7 @@ export async function setSubscription(userId: string, slug: string, on: boolean,
   return rows.length > 0;
 }
 
-// ---------------------------------------------------------------- password reset
-
-/** Creates a single-use reset link valid for 30 minutes and "emails" it to the demo inbox. */
-export async function createReset(email: string): Promise<boolean> {
-  if (usesRemoteBackend()) return callBackend("createReset", [email]);
-  const u = await findByEmail(email);
-  if (!u) return false;
-  const token = crypto.randomBytes(32).toString("hex");
-  await transaction(async (c) => {
-    await c.query("delete from password_resets where user_id = $1 or expires <= now()", [u.id]);
-    await c.query("insert into password_resets (token_hash, user_id, expires) values ($1, $2, now() + interval '30 minutes')", [sha(token), u.id]);
-    await c.query("insert into demo_inbox (recipient, subject, link) values ($1, $2, $3)", [u.email, "Reset your AKNA Capital password", `/reset-password?token=${token}`]);
-    await c.query("delete from demo_inbox where id not in (select id from demo_inbox order by id desc limit 10)");
-  });
-  return true;
-}
-
-export async function resetTokenValid(token: string): Promise<boolean> {
-  if (usesRemoteBackend()) return callBackend("resetTokenValid", [token]);
-  return (await query("select 1 from password_resets where token_hash = $1 and expires > now()", [sha(token)])).length > 0;
-}
-
-export async function consumeReset(token: string, newPassword: string): Promise<boolean> {
-  if (usesRemoteBackend()) return callBackend("consumeReset", [token, newPassword]);
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = hashPw(newPassword, salt);
-  return transaction(async (c) => {
-    // deleting the row is what makes the link single use, even if it is submitted twice at the same moment
-    const used = await c.query<{ user_id: string }>("delete from password_resets where token_hash = $1 and expires > now() returning user_id", [sha(token)]);
-    const userId = used.rows[0]?.user_id;
-    if (!userId) return false;
-    await c.query("update users set salt = $2, hash = $3 where id = $1", [userId, salt, hash]);
-    await c.query("delete from password_resets where user_id = $1", [userId]);
-    return true;
-  });
-}
+// ---------------------------------------------------------------- demo inbox
 
 export async function inbox(): Promise<Mail[]> {
   if (usesRemoteBackend()) return callBackend("inbox");
