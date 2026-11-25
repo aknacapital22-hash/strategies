@@ -1,0 +1,68 @@
+# Rebalances the strategies automatically.
+# After the Indian market closes: download prices, run the engine, check the result. When a basket has a new signal,
+# commit engine/out/results.json (Netlify and Render redeploy from it), then ask the backend to email subscribers.
+#
+# Repository settings > Secrets and variables > Actions:
+#   secret   CRON_SECRET   the same value as CRON_SECRET on Render
+#   variable BACKEND_URL   https://strategies-djiw.onrender.com
+name: Rebalance strategies
+
+on:
+  schedule:
+    - cron: "30 13 * * 1-5" # 19:00 IST, Monday to Friday
+    - cron: "30 15 * * 1-5" # 21:00 IST: second try, and any emails still to send
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebalance
+  cancel-in-progress: false
+
+jobs:
+  rebalance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install engine packages
+        run: pip install -r engine/requirements.txt
+
+      - name: Download prices and run the engine
+        run: |
+          cp engine/out/results.json "$RUNNER_TEMP/previous.json"
+          mkdir -p engine/data
+          python engine/fetch_data.py
+          python engine/engine.py
+
+      - name: Safety checks
+        id: check
+        run: python engine/validate.py "$RUNNER_TEMP/previous.json" >> "$GITHUB_OUTPUT"
+
+      - name: Publish the new portfolios
+        if: steps.check.outputs.publish == 'true'
+        run: |
+          git config user.name "rebalance-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add engine/out/results.json
+          git commit -m "Rebalance: publish new model portfolios"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Keep the published file when nothing is new
+        if: steps.check.outputs.publish != 'true'
+        run: git checkout -- engine/out/results.json
+
+      - name: Email subscribers
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          BACKEND_URL: ${{ vars.BACKEND_URL }}
+        run: python engine/notify.py

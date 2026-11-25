@@ -68,6 +68,15 @@ create table if not exists rate_limits (
   reset_at timestamptz not null
 );
 
+-- Who has been emailed about which rebalance, so nobody is told twice.
+create table if not exists rebalance_notices (
+  user_id uuid not null references users (id) on delete cascade,
+  slug    text not null,
+  signal  date not null,
+  created timestamptz not null default now(),
+  primary key (user_id, slug, signal)
+);
+
 -- Stands in for email during local development, when no mail key is set.
 create table if not exists demo_inbox (
   id        bigint generated always as identity primary key,
