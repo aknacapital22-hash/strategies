@@ -8,6 +8,8 @@ import { posts } from "./lib/blog";
 const SLUGS = new Set((strategies as { slug: string }[]).map((s) => s.slug));
 const POSTS = new Set(posts.map((p) => p.slug));
 
+const RENAMED: Record<string, string> = { "focused-largecap-20": "focused-largecap-15" };
+
 export function proxy(req: NextRequest) {
   // /account needs a session: bounce visitors without a session cookie straight to login (the page verifies it fully).
   if (["/account", "/admin"].includes(req.nextUrl.pathname) && !req.cookies.get("akna_session")) {
@@ -19,6 +21,9 @@ export function proxy(req: NextRequest) {
   }
   if (!req.nextUrl.pathname.startsWith("/strategies/")) return NextResponse.next();
   const slug = req.nextUrl.pathname.split("/")[2];
+  // Renamed baskets. Also done here because some hosts (Netlify) run this before the redirects in next.config.ts.
+  const renamed = slug ? RENAMED[slug] : undefined;
+  if (renamed) return NextResponse.redirect(new URL(`/strategies/${renamed}${req.nextUrl.search}`, req.url), 308);
   if (slug && !SLUGS.has(slug)) {
     return NextResponse.rewrite(new URL("/__not-found", req.url), { status: 404 });
   }
