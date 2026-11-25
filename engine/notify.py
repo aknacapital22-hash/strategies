@@ -23,10 +23,27 @@ def call(url, key, body):
         return 0, {"error": str(e)}
 
 
+def alert(base, key, run_url):
+    """The run failed: ask the backend to email the admins. A sleeping server gets a few tries."""
+    body = json.dumps({"failedRun": run_url}).encode()
+    for attempt in range(6):
+        status, reply = call(f"{base}/api/rebalance-notify", key, body)
+        if status == 200:
+            print(f"admins alerted: {reply.get('alerted')}")
+            return
+        print(f"alert not sent yet ({status} {reply.get('error', '')})")
+        if status in (400, 401, 503):
+            break
+        time.sleep(30)
+    sys.exit("Could not send the failure alert.")
+
+
 def main():
     base, key = os.environ.get("BACKEND_URL", "").strip().rstrip("/"), os.environ.get("CRON_SECRET", "").strip()
     if not base.startswith("https://") or not key:
         sys.exit("Set the BACKEND_URL variable (https) and the CRON_SECRET secret in the repository settings.")
+    if "--failed" in sys.argv:
+        return alert(base, key, os.environ.get("RUN_URL", ""))
     results = json.load(open(os.path.join(HERE, "out", "results.json"), encoding="utf8"))
     body = json.dumps({"signals": {slug: r["schedule"]["lastSignal"] for slug, r in results.items()}}).encode()
 

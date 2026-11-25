@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import { usesRemoteBackend } from "@/lib/backend";
 import { engine } from "@/lib/engine";
 import { mailConfigured } from "@/lib/mail";
-import { sendRebalanceNotices } from "@/lib/rebalanceNotify";
+import { alertAdmins, sendRebalanceNotices } from "@/lib/rebalanceNotify";
 
 const digest = (s: string) => crypto.createHash("sha256").update(s).digest();
 const reply = (status: number, body: unknown) => Response.json(body, { status, headers: { "cache-control": "no-store" } });
@@ -18,7 +18,18 @@ export async function POST(req: Request) {
 
   // The job says which signals it published. Until this server has been redeployed with them, send nothing:
   // the email would link to the previous portfolio.
-  const body = (await req.json().catch(() => null)) as { signals?: Record<string, string> } | null;
+  const body = (await req.json().catch(() => null)) as { signals?: Record<string, string>; failedRun?: string } | null;
+  if (typeof body?.failedRun === "string") {
+    // Only a link to a GitHub Actions run is accepted, so this cannot be used to send other text or links.
+    if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/actions\/runs\/\d+$/.test(body.failedRun)) return reply(400, { error: "bad request" });
+    if (!mailConfigured()) return reply(503, { error: "email is not set up" });
+    try {
+      return reply(200, await alertAdmins(body.failedRun));
+    } catch (e) {
+      console.error("failure alert not sent:", e instanceof Error ? e.message : e);
+      return reply(500, { error: "server error" });
+    }
+  }
   const signals = body?.signals;
   if (!signals || typeof signals !== "object") return reply(400, { error: "bad request" });
   const behind = Object.entries(signals).filter(([slug, signal]) => engine[slug]?.schedule.lastSignal !== signal);

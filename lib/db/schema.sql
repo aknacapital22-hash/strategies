@@ -1,4 +1,4 @@
--- AKNA Capital Stock Strategies: database schema. Safe to run again (everything is "if not exists").
+-- 15Stocks by AKNA Capital: database schema. Safe to run again (everything is "if not exists").
 
 create table if not exists users (
   id       uuid primary key,
@@ -41,6 +41,10 @@ create unique index if not exists requests_utr_key on requests (utr) where utr i
 create index if not exists requests_user_created on requests (user_id, created desc);
 create index if not exists requests_created on requests (created desc);
 
+-- All Access (every basket) is its own plan, sold only under the name all-access.
+alter table requests drop constraint if exists requests_plan_check;
+alter table requests add constraint requests_plan_check check (plan in ('quarter', 'year', 'all') and (plan = 'all') = (slug = 'all-access'));
+
 -- Single-use password reset links (only a hash of the token is stored).
 create table if not exists password_resets (
   token_hash text primary key,
@@ -76,6 +80,11 @@ create table if not exists rebalance_notices (
   created timestamptz not null default now(),
   primary key (user_id, slug, signal)
 );
+
+-- Focused Largecap 20 became Focused Largecap 15 when baskets were capped at 15 stocks. Safe to run again.
+update subscriptions set slug = 'focused-largecap-15' where slug = 'focused-largecap-20';
+update requests set slug = 'focused-largecap-15' where slug = 'focused-largecap-20';
+update rebalance_notices set slug = 'focused-largecap-15' where slug = 'focused-largecap-20';
 
 -- Stands in for email during local development, when no mail key is set.
 create table if not exists demo_inbox (

@@ -13,7 +13,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 IST = timezone(timedelta(hours=5, minutes=30))
 KEY_SERIES = ["^NSEI", "^CRSLDX", "GOLDBEES.NS", "LIQUIDCASE.NS"]
 MIN_COVERAGE = 0.97  # share of all tickers that must have a price on the latest day
-MAX_SWAPPED = 0.70  # a single rebalance replacing more of a basket than this is looked at by a person first
+# A rebalance replacing more of a basket than this is looked at by a person first. Real rebalances have replaced up to
+# 73% of a basket of 10 or more (and 80% of the 5-stock one), so only baskets of 10 or more are held to it.
+MAX_SWAPPED = 0.85
+MAX_MISSED_DAYS = 35  # after a longer outage a person looks before publishing resumes
 
 
 def check_prices(raw, now, max_age_days):
@@ -40,7 +43,7 @@ def names(result):
     return {p["symbol"] for p in result["portfolio"]}
 
 
-def check_results(old, new):
+def check_results(old, new, allow_large_swap=False):
     """Problems with the new results compared with what is already published."""
     problems = []
     if set(old) != set(new):
@@ -65,10 +68,10 @@ def check_results(old, new):
                 problems.append(f"{slug}: stocks changed without a new signal ({sorted(names(a) ^ names(b))}). The price history was revised.")
         else:
             gap = (datetime.fromisoformat(now_) - datetime.fromisoformat(was)).days
-            if gap > b["schedule"]["everyWeeks"] * 7:
-                problems.append(f"{slug}: a rebalance was missed between {was} and {now_}")
+            if gap > max(b["schedule"]["everyWeeks"] * 7, MAX_MISSED_DAYS):  # a short gap is caught up automatically
+                problems.append(f"{slug}: nothing was published between {was} and {now_}")
             old_stocks = {s for s in names(a) if s not in ("LIQUIDCASE", "GOLDBEES")}
-            if old_stocks and b["config"]["sleeves"] is not None:
+            if len(old_stocks) >= 10 and b["config"]["sleeves"] is not None and not allow_large_swap:
                 swapped = len(old_stocks - names(b)) / len(old_stocks)
                 if swapped > MAX_SWAPPED:
                     problems.append(f"{slug}: {swapped:.0%} of the stocks would be replaced at once")
@@ -82,6 +85,27 @@ def check_results(old, new):
     return problems
 
 
+def check_site(results, site):
+    """Problems with the website figures, which must describe exactly the portfolios being published."""
+    problems = []
+    try:
+        json.dumps(site, allow_nan=False)  # a failed index download would leave NaN, which breaks the website build
+    except ValueError:
+        return ["the website figures contain a number that is not a number (NaN)"]
+    by = {e["slug"]: e for e in site}
+    if set(by) != set(results):
+        return [f"the website lists different baskets from the engine: {sorted(set(by) ^ set(results))}"]
+    for slug, r in results.items():
+        e = by[slug]
+        if [h["sym"] for h in e["holdings"]] != [p["symbol"] for p in r["portfolio"]]:
+            problems.append(f"{slug}: the website holdings differ from the portfolio")
+        if abs(e["cagr"] - r["metrics"]["cagr"]) > 0.005:
+            problems.append(f"{slug}: the website return differs from the engine")
+        if not e["monthly"] or not e["benchmark"]["monthly"] or e["growth"]["model"] <= 0:
+            problems.append(f"{slug}: performance or benchmark figures are missing")
+    return problems
+
+
 def has_new_signal(old, new):
     return any(slug in old and r["schedule"]["lastSignal"] != old[slug]["schedule"]["lastSignal"] for slug, r in new.items())
 
@@ -90,11 +114,14 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("previous")
     ap.add_argument("--data-date-max-age", type=int, default=4)  # covers a long weekend
+    ap.add_argument("--allow-large-swap", action="store_true", help="after a person has reviewed an unusually large rebalance")
     args = ap.parse_args()
     load = lambda p: json.load(open(p, encoding="utf8"))
     old, new = load(args.previous), load(os.path.join(HERE, "out", "results.json"))
     raw = pd.read_csv(os.path.join(HERE, "data", "close_raw.csv.gz"), index_col=0, parse_dates=True)
-    problems = check_prices(raw, datetime.now(IST), args.data_date_max_age) + check_results(old, new)
+    site = load(os.path.join(HERE, "..", "lib", "strategies.json"))
+    problems = (check_prices(raw, datetime.now(IST), args.data_date_max_age) + check_results(old, new, args.allow_large_swap)
+                + check_site(new, site))
     if problems:
         print("NOT SAFE TO PUBLISH:", file=sys.stderr)
         for p in problems:

@@ -1,12 +1,22 @@
 // One place for the prices, so every page and calculation agrees. Prices are per basket.
-export type PlanId = "quarter" | "year";
+export type PlanId = "quarter" | "year" | "all";
 
 export const PLANS: Record<PlanId, { id: PlanId; name: string; price: number; days: number; per: string; months: number }> = {
   quarter: { id: "quarter", name: "Quarterly", price: 3999, days: 90, per: "quarter", months: 3 },
   year: { id: "year", name: "Yearly", price: 14999, days: 365, per: "year", months: 12 },
+  all: { id: "all", name: "All Access", price: 59999, days: 365, per: "year", months: 12 },
 };
 
-export const isPlan = (x: unknown): x is PlanId => x === "quarter" || x === "year";
+/** All Access is bought like a basket, under this name, and opens every basket. */
+export const ALL_ACCESS = "all-access";
+export const BASKET_COUNT = 15;
+/** What the All Access plan saves against a yearly plan for every basket. */
+export const ALL_ACCESS_SAVING = PLANS.year.price * BASKET_COUNT - PLANS.all.price;
+/** All Access is only sold as All Access, and the basket plans only for one basket. */
+export const planFits = (slug: string, plan: PlanId) => (slug === ALL_ACCESS) === (plan === "all");
+
+export const isPlan = (x: unknown): x is PlanId => x === "quarter" || x === "year" || x === "all";
+export const isBasketPlan = (x: unknown): x is "quarter" | "year" => x === "quarter" || x === "year";
 
 export const inr = (n: number, d = 0) => "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: d, minimumFractionDigits: d });
 
@@ -14,6 +24,7 @@ export const QUARTER = inr(PLANS.quarter.price); // "₹3,999"
 export const YEAR = inr(PLANS.year.price); // "₹14,999"
 /** Short line used in buttons and summaries. */
 export const PRICE_LINE = `${QUARTER} a quarter or ${YEAR} a year`;
+export const ALL_ACCESS_PRICE = inr(PLANS.all.price); // "₹59,999"
 
 /** What four quarterly payments cost, and what the yearly plan saves against that. */
 export const FOUR_QUARTERS = PLANS.quarter.price * 4; // 15,996

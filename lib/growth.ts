@@ -8,6 +8,14 @@ export function growthSeries(s: { monthly: Monthly }): number[] {
   return v;
 }
 
+/** Yearly Sharpe ratio from monthly returns, with the same 6.5% risk-free rate as the engine. */
+export function sharpeRatio(monthly: Monthly): number {
+  const r = monthly.map((m) => m.r / 100);
+  const mean = r.reduce((a, x) => a + x, 0) / r.length;
+  const sd = Math.sqrt(r.reduce((a, x) => a + (x - mean) ** 2, 0) / (r.length - 1));
+  return sd > 0 ? (mean * 12 - 0.065) / (sd * Math.sqrt(12)) : 0;
+}
+
 /** SVG path for a 160x44 log-scale sparkline. */
 export function sparkPath(monthly: Monthly): string {
   const v = growthSeries({ monthly });

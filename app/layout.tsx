@@ -20,16 +20,16 @@ const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "sw
 const fontVars = [jakarta, outfit, stack, figtree, geist].map((f) => f.variable).join(" ");
 
 const DESCRIPTION =
-  "AKNA Capital Stock Strategies: quant investing through systematic, rules-based strategies. Research risk and track record, and approve rebalances in your own demat.";
+  "Systematic investing for wealth creation. Research index strategies and approve rebalances in your own demat.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "AKNA Capital Stock Strategies | Alpha by Design", template: "%s | AKNA Capital Stock Strategies" },
+  title: { default: "15Stocks by AKNA Capital | Systematic investing for wealth creation", template: "%s | 15Stocks by AKNA Capital" },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   alternates: { canonical: "./" },
-  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: "AKNA Capital Stock Strategies | Alpha by Design", description: DESCRIPTION, url: "/" },
-  twitter: { card: "summary_large_image", title: "AKNA Capital Stock Strategies | Alpha by Design", description: DESCRIPTION },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: "15Stocks by AKNA Capital | Systematic investing for wealth creation", description: DESCRIPTION, url: "/" },
+  twitter: { card: "summary_large_image", title: "15Stocks by AKNA Capital | Systematic investing for wealth creation", description: DESCRIPTION },
   // Indexable only when NEXT_PUBLIC_SITE_URL is set (production); dev and previews stay out of search.
   robots: INDEXABLE ? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } } : { index: false, follow: false },
 };
@@ -45,7 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={{
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", "@id": abs("/#org"), name: SITE_NAME, url: abs("/"), logo: abs("/logo.svg") },
+            { "@type": "Organization", "@id": abs("/#org"), name: SITE_NAME, url: abs("/"), logo: abs("/logo.png") },
             { "@type": "WebSite", "@id": abs("/#site"), url: abs("/"), name: SITE_NAME, publisher: { "@id": abs("/#org") }, inLanguage: "en-IN" },
           ],
         }} />

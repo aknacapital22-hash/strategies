@@ -1,6 +1,6 @@
 """Strategy engine: backtests the 15 strategies and emits latest portfolios.
-Usage (cwd = app/):  python engine/engine.py
-Outputs: engine/out/results.json
+Usage (cwd = app/):  python engine/engine.py          (portfolios only: engine/out/results.json)
+                     python engine/site_data.py       (portfolios and the website figures)
 Rules implemented (inferred from the reference strategy pages, calibrated on their published lists):
   universe -> price filter -> risk adjusted momentum composite -> top N equal weight
   -> fixed calendar rebalance -> optional debt/gold sleeves. Signal at close of day t,
@@ -21,7 +21,7 @@ SWITCH = dict(lookbacks=(42, 84, 126, 252), skip=5, vol_mode="none")  # calibrat
 COST = 0.0032  # per rupee traded: 0.2% platform fee + ~0.12% STT, exchange, stamp, GST
 DEBT_FALLBACK = 0.065  # annual accrual used before LIQUIDCASE listed
 
-MAX_STOCKS = 20  # no basket may hold more than 20 stocks
+MAX_STOCKS = 15  # no basket may hold more than 15 stocks
 S = lambda **k: {**k, "n": min(k["n"], MAX_STOCKS)}
 STRATEGIES = {
     "allcap": S(uni="total_market", maxp=5000, n=40, wk=2, w=(1, 0, 0), start="2022-11-25"),
@@ -29,7 +29,7 @@ STRATEGIES = {
     "microcap": S(uni="microcap250", maxp=5000, n=40, wk=2, w=(1, 0, 0), start="2022-11-25"),
     "large-midcap": S(uni="niftylargemidcap250", maxp=5000, n=30, wk=2, w=(1, 0, 0), start="2022-08-12"),
     "midcap": S(uni="niftymidcap150", maxp=5000, n=20, wk=2, w=(1, 0, 0), start="2021-11-19"),
-    "focused-largecap-20": S(uni="nifty100", maxp=5000, n=20, wk=4, w=(1, 0, 0), start="2021-11-19"),
+    "focused-largecap-15": S(uni="nifty100", maxp=5000, n=15, wk=4, w=(1, 0, 0), start="2021-11-19"),
     "largecap-hybrid": S(uni="nifty100", maxp=5000, n=20, wk=4, w=(0.8, 0.2, 0), start="2021-11-19"),
     "largecap-multi-asset": S(uni="nifty100", maxp=5000, n=20, wk=4, w=(0.8, 0.1, 0.1), start="2021-11-19"),
     "large-mid-hybrid": S(uni="niftylargemidcap250", maxp=5000, n=40, wk=2, w=(0.8, 0.2, 0), start="2021-11-19"),
@@ -196,11 +196,15 @@ def metrics(nav):
                 sharpe=(r.mean() * 252 - 0.065) / (r.std() * np.sqrt(252)))
 
 
+RUNS = {}  # slug -> (daily values, number of rebalances) from the last run_all(), for site_data.py
+
+
 def run_all():
     pub_cagr = {s["slug"]: s["cagr"] for s in json.load(open(os.path.join(HERE, "..", "lib", "strategies.json"), encoding="utf8"))}
     out = {}
     for slug, cfg in STRATEGIES.items():
         nav, hist, pending, turn, held = backtest(slug, cfg)
+        RUNS[slug] = (nav, len(hist))
         m = metrics(nav)
         n50 = nifty[nifty.index >= nav.index[0]]
         bm = (n50.iloc[-1] / n50.iloc[0]) ** (365.25 / (n50.index[-1] - n50.index[0]).days) - 1

@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { getUser } from "@/lib/auth/session";
 import { getRequest, requestsFor } from "@/lib/auth/store";
 import { strategies } from "@/lib/strategies";
-import { PLANS, dateIN, inr } from "@/lib/pricing";
+import { ALL_ACCESS, PLANS, dateIN, inr } from "@/lib/pricing";
 import { PAYEE_NAME, UPI_ID, CONTACT_EMAIL, WHATSAPP_DISPLAY, shortId, upiLink, whatsappLink } from "@/lib/payment";
 import CopyButton from "@/components/CopyButton";
 import UtrForm from "@/components/UtrForm";
@@ -15,8 +15,11 @@ export const metadata = { title: "Complete your payment", robots: { index: false
 async function Inner({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ r?: string }> }) {
   const { slug } = await params;
   const { r } = await searchParams;
-  const s = strategies.find((x) => x.slug === slug);
+  // what is being paid for: one basket, or All Access
+  const s = slug === ALL_ACCESS ? { name: "All Access (every basket)" } : strategies.find((x) => x.slug === slug);
   if (!s) notFound();
+  const details = slug === ALL_ACCESS ? "/pricing" : `/strategies/${slug}`;
+  const opened = slug === ALL_ACCESS ? { href: "/portfolios", label: "See your baskets" } : { href: `/strategies/${slug}#holdings`, label: `See ${s.name} holdings` };
   const user = await getUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/subscribe/${slug}`)}`);
 
@@ -32,7 +35,7 @@ async function Inner({ params, searchParams }: { params: Promise<{ slug: string 
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href={`/strategies/${slug}`} className="text-sm font-medium text-aink hover:underline">← {s.name} details</Link>
+      <Link href={details} className="text-sm font-medium text-aink hover:underline">← {s.name} details</Link>
       <div className="card mt-4 p-6 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-extrabold md:text-3xl">{req.status === "approved" ? "Plan activated" : req.status === "rejected" ? "Request not approved" : "Complete your payment"}</h1>
@@ -48,7 +51,7 @@ async function Inner({ params, searchParams }: { params: Promise<{ slug: string 
         {req.status === "approved" && (
           <div className="mt-6">
             <p>Your plan is active{user.subExp[slug] ? <> until <b>{dateIN(user.subExp[slug])}</b></> : null}. You can now see the holdings.</p>
-            <Link href={`/strategies/${slug}#holdings`} className="btn btn-primary mt-5">See {s.name} holdings →</Link>
+            <Link href={opened.href} className="btn btn-primary mt-5">{opened.label} →</Link>
           </div>
         )}
 

@@ -11,7 +11,7 @@ const questions = [
 
 const HYBRID = { name: "Largecap Hybrid", slug: "largecap-hybrid", why: "Built for a smoother ride, with growth that does not keep you up at night." };
 const MULTI = { name: "Allcap Multi Asset", slug: "allcap-multi-asset", why: "Built to keep compounding even when one market stumbles." };
-const FOCUSED = { name: "Focused Largecap 20", slug: "focused-largecap-20", why: "A sharper take on India's biggest names, for people who want more than the index." };
+const FOCUSED = { name: "Focused Largecap 15", slug: "focused-largecap-15", why: "A sharper take on India's biggest names, for people who want more than the index." };
 const ALLCAP = { name: "Allcap", slug: "allcap", why: "Our flagship, built for long horizons and the biggest upside. Expect bigger swings along the way." };
 
 // What you want is capped by what you can bear: a short horizon or selling in a fall limits the risk on offer,

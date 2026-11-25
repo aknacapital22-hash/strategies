@@ -62,6 +62,25 @@ async function countToday(): Promise<boolean> {
   return r.n <= DAILY_LIMIT;
 }
 
+/** Tells the admins that the scheduled run failed, so a stalled automation never goes unnoticed. */
+export async function alertAdmins(runUrl: string): Promise<{ alerted: number }> {
+  const [r] = await query<{ n: number }>(
+    `insert into rate_limits (key, n, reset_at) values ('mail:alerts', 1, now() + interval '1 day')
+     on conflict (key) do update set
+       n = case when rate_limits.reset_at <= now() then 1 else rate_limits.n + 1 end,
+       reset_at = case when rate_limits.reset_at <= now() then excluded.reset_at else rate_limits.reset_at end
+     returning n`,
+  );
+  if (r.n > 4) return { alerted: 0 };
+  let alerted = 0;
+  for (const a of await query<{ email: string }>("select email from users where role = 'admin'")) {
+    const sent = await sendMail(a.email, "Action needed: the automatic rebalance did not finish",
+      `The scheduled rebalance run failed. Until a run succeeds, new portfolios or rebalance emails may be missing.\n\nOpen the run to see the reason:\n${runUrl}\n\nIt is tried again at the next scheduled time.`);
+    if (sent) alerted++;
+  }
+  return { alerted };
+}
+
 export async function sendRebalanceNotices(): Promise<{ sent: number; failed: number; remaining: number; limitReached: boolean }> {
   const due = dueSignals();
   const summary = { sent: 0, failed: 0, remaining: 0, limitReached: false };
@@ -69,9 +88,9 @@ export async function sendRebalanceNotices(): Promise<{ sent: number; failed: nu
 
   // People with an active plan who have not been told yet.
   const rows = await query<{ id: string; name: string; email: string; slug: string; signal: string }>(
-    `select u.id, u.name, u.email, d.slug, d.signal
+    `select distinct u.id, u.name, u.email, d.slug, d.signal, u.created
      from jsonb_to_recordset($1::jsonb) as d(slug text, signal text)
-     join subscriptions s on s.slug = d.slug and s.expires > now()
+     join subscriptions s on (s.slug = d.slug or s.slug = 'all-access') and s.expires > now()
      join users u on u.id = s.user_id
      where not exists (select 1 from rebalance_notices n where n.user_id = u.id and n.slug = d.slug and n.signal = d.signal::date)
      order by u.created, d.slug`,

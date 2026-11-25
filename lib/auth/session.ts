@@ -2,11 +2,17 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { activeSubs, authSecret, findById } from "./store";
+import { withAllAccess } from "../subscription";
+import { ALL_ACCESS } from "../pricing";
+import strategies from "../strategies.json";
+
+const BASKETS = (strategies as { slug: string }[]).map((s) => s.slug);
 
 export const COOKIE = "akna_session";
 const TTL = 60 * 60 * 24 * 7; // 7 days
 
-export type PublicUser = { id: string; name: string; email: string; subs: string[]; subExp: Record<string, string>; role: "admin" | "user"; phone: string };
+/** `subs` and `subExp` are what is open (All Access included). `paidBaskets` are the baskets with a plan of their own. */
+export type PublicUser = { id: string; name: string; email: string; subs: string[]; subExp: Record<string, string>; allAccessUntil?: string; paidBaskets: string[]; role: "admin" | "user"; phone: string };
 
 const mac = (body: string) => crypto.createHmac("sha256", authSecret()).update(body).digest("base64url");
 
@@ -36,7 +42,9 @@ export async function getUser(): Promise<PublicUser | null> {
   await connection(); // the expiry check reads the clock, so this must run at request time, never in a prerender
   const uid = readToken(token);
   const u = uid ? await findById(uid) : null;
-  return u ? { id: u.id, name: u.name, email: u.email, subs: activeSubs(u), subExp: u.subExp ?? {}, role: u.role === "admin" ? "admin" : "user", phone: u.phone ?? "" } : null;
+  if (!u) return null;
+  const own = activeSubs(u);
+  return { id: u.id, name: u.name, email: u.email, ...withAllAccess(own, u.subExp ?? {}, BASKETS), paidBaskets: own.filter((s) => s !== ALL_ACCESS), role: u.role === "admin" ? "admin" : "user", phone: u.phone ?? "" };
 }
 
 export async function startSession(uid: string) {

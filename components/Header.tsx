@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Brand from "./Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -61,12 +61,8 @@ export default function Header({ auth, authMobile }: { auth: ReactNode; authMobi
     <>
       <header className={`sticky top-0 z-50 border-b backdrop-blur-md transition-colors ${scrolled || open ? "border-pline bg-page/90" : "border-transparent bg-page/70"}`}>
         <div className="wrap flex h-[68px] items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5 font-bold tracking-tight" aria-label="AKNA Capital Stock Strategies home">
-            <Image src="/logo.svg" alt="" width={40} height={40} unoptimized className="h-10 w-10 shrink-0 rounded-[10px] shadow-sm" />
-            <span className="leading-tight">
-              AKNA Capital
-              <span className="hidden text-[11px] font-medium text-pmuted sm:block">Stock Strategies</span>
-            </span>
+          <Link href="/" className="shrink-0" aria-label="15Stocks by AKNA Capital, home">
+            <Brand />
           </Link>
 
           <nav className="hidden items-center gap-1 text-sm font-medium lg:flex" aria-label="Primary">

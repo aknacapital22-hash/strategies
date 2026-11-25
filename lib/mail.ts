@@ -8,7 +8,7 @@ export async function sendMail(to: string, subject: string, text: string): Promi
     const res = await fetch("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: { "api-key": (process.env.BREVO_API_KEY ?? "").trim(), "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ sender: { name: "AKNA Capital", email: (process.env.MAIL_FROM ?? "").trim() }, to: [{ email: to }], subject, textContent: text }),
+      body: JSON.stringify({ sender: { name: "15Stocks by AKNA Capital", email: (process.env.MAIL_FROM ?? "").trim() }, to: [{ email: to }], subject, textContent: text }),
       cache: "no-store",
       signal: AbortSignal.timeout(15000),
     });

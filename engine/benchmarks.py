@@ -14,7 +14,7 @@ MAP = {  # slug -> (label, components, proxy note)
  "large-mid-hybrid": ("Nifty 100 + Midcap 150 (50:50)", ["NIFTY100", "MIDCAP150"], "Equity index only; the strategy also holds 20% debt. The 50:50 mix approximates Nifty LargeMidcap 250."),
  "largemid-multi-asset": ("Nifty 100 + Midcap 150 (50:50)", ["NIFTY100", "MIDCAP150"], "Equity index only; the strategy also holds 10% debt and 10% gold. The 50:50 mix approximates Nifty LargeMidcap 250."),
  "midcap": ("Nifty Midcap 150", ["MIDCAP150"], ""),
- "focused-largecap-20": ("Nifty 100", ["NIFTY100"], ""),
+ "focused-largecap-15": ("Nifty 100", ["NIFTY100"], ""),
  "largecap-hybrid": ("Nifty 100", ["NIFTY100"], "Equity index only; the strategy also holds 20% debt."),
  "largecap-multi-asset": ("Nifty 100", ["NIFTY100"], "Equity index only; the strategy also holds 10% debt and 10% gold."),
  "energy-basket": ("Nifty Energy", ["ENERGY"], ""),

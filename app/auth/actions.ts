@@ -3,8 +3,9 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { isPlan, type PlanId } from "@/lib/pricing";
-import { burnPasswordCheck, createRequest, findByEmail, setRequestUtr, setSubscription, verifyPassword } from "@/lib/auth/store";
+import { ALL_ACCESS, isBasketPlan, type PlanId } from "@/lib/pricing";
+import { basketState, canRequest, payHref } from "@/lib/subscription";
+import { burnPasswordCheck, createRequest, findByEmail, requestsFor, setRequestUtr, setSubscription, verifyPassword } from "@/lib/auth/store";
 import { completeReset, loginAttempt, loginSucceeded, resendSignupCode, startReset, startSignup, verifySignup, type SendProblem } from "@/lib/auth/otp";
 import { usesRemoteBackend } from "@/lib/backend";
 import { EMAIL_RE, endSession, getUser, normalizePhone, passwordProblem, safeNext, startSession } from "@/lib/auth/session";
@@ -106,8 +107,14 @@ export async function forgotPassword(_: FormState, fd: FormData): Promise<FormSt
 export async function requestSubscription(fd: FormData) {
   const user = await getUser();
   const slug = str(fd, "slug");
-  const plan: PlanId = isPlan(str(fd, "plan")) ? (str(fd, "plan") as PlanId) : "year";
+  const asked = str(fd, "plan");
+  const plan: PlanId = slug === ALL_ACCESS ? "all" : isBasketPlan(asked) ? asked : "year";
   if (!user) redirect(`/login?next=${encodeURIComponent(`/subscribe/${slug}`)}`);
+  const state = basketState(user, slug, (await requestsFor(user.id)).filter((r) => r.status === "pending"));
+  if (!canRequest(state)) {
+    // Already subscribed: show that. Already paid and waiting: show that payment. Neither changes anything.
+    redirect(state.kind === "pending" ? payHref(state.request.slug, state.request.id) : `/subscribe/${encodeURIComponent(slug)}`);
+  }
   const r = await createRequest(user.id, slug, plan);
   if (!r) redirect("/strategies");
   revalidatePath("/account");

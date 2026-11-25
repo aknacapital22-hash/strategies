@@ -18,7 +18,7 @@ export const paths: Path[] = [
       { title: "Compare with the right index", body: "Every strategy page compares the strategy with its own index over the same dates. Beating the Nifty 50 with a small-cap strategy says little, since small caps and large caps behave differently." },
       { title: "Charges are inside the numbers", body: "Model results are after an allowance for brokerage, taxes and exchange charges on each trade, but before the subscription price (₹3,999 a quarter or ₹14,999 a year per basket). Your own results also depend on the prices you actually get." },
       { title: "Check the start date", body: "A back test that begins at a market low looks better than one that begins at a high. Look at the start date, and ask whether the period included both rising and falling markets." },
-      { title: "Position size and minimums", body: "A basket of 20 stocks needs enough money to buy at least one share of each at a sensible weight. That is why each basket has its own minimum, worked out from the prices of its stocks. None is above ₹2 lakh." },
+      { title: "Position size and minimums", body: "A basket of 15 stocks needs enough money to buy at least one share of each at a sensible weight. That is why each basket has its own minimum, worked out from the prices of its stocks. None is above ₹2 lakh." },
       { title: "Decide what you can sit through", body: "The useful question is not how much a strategy made, but whether you would have held through its worst fall. If not, choose a lower-risk strategy." },
     ],
   },
@@ -43,7 +43,7 @@ export const paths: Path[] = [
     blurb: "Every layer that sits between the model return and what lands in your account.",
     stops: [
       { title: "Subscription price", body: "Each basket is a flat ₹3,999 a quarter or ₹14,999 a year. It does not change with how much you trade or invest, so it weighs less on a larger amount. Trading charges still apply on every trade, so turnover matters." },
-      { title: "Brokerage and exchange charges", body: "Brokers charge per order, and exchanges charge a small fee on turnover. For delivery trades in liquid stocks these are small, but they add up across 20 stocks and many rebalances." },
+      { title: "Brokerage and exchange charges", body: "Brokers charge per order, and exchanges charge a small fee on turnover. For delivery trades in liquid stocks these are small, but they add up across 15 stocks and many rebalances." },
       { title: "Securities transaction tax and stamp duty", body: "Buying and selling shares on the exchange attracts securities transaction tax and stamp duty. The model includes an allowance for these." },
       { title: "Impact cost and slippage", body: "Small and micro caps trade thinly. Buying a large amount can move the price against you, so the price you get differs from the closing price used in a back test." },
       { title: "Capital gains tax", body: "Profits are taxed when you sell. Gains on shares held under a year are taxed at the short-term rate, and longer holdings at the long-term rate. Frequent rebalancing means more short-term gains. Check current rates with a tax professional." },
@@ -125,7 +125,7 @@ export const topics: Topic[] = [
     title: "Portfolio construction",
     blurb: "How many stocks, how much of each, and how often to change.",
     notes: [
-      { title: "Why a cap of 20 stocks", body: "Twenty equal-weight stocks give each name 5%, enough to matter and few enough to follow. Beyond that, extra names add little diversification but dilute the best ideas and raise costs." },
+      { title: "Why a cap of 15 stocks", body: "Fifteen equal-weight stocks give each name about 6.7% of the stock portion, few enough to follow and to trade. The trade-off is concentration: with fewer names, one bad stock hurts more than it would in a larger basket." },
       { title: "Equal weight", body: "Equal weighting avoids leaning on the biggest company and gives smaller names a real say. The cost is more trading when prices drift." },
       { title: "Rebalance frequency", body: "Rebalancing every week or two keeps a momentum signal fresh but raises turnover and cost. Every four weeks trades less and reacts more slowly." },
     ],
@@ -175,7 +175,7 @@ export const topics: Topic[] = [
     title: "Strategy notes",
     blurb: "How the strategies on this site are built.",
     notes: [
-      { title: "The rule in four steps", body: "Start with a universe of stocks, drop those above the price limit, rank the rest on risk-adjusted momentum and hold the top 20 or fewer in equal weight, then repeat on a fixed calendar." },
+      { title: "The rule in four steps", body: "Start with a universe of stocks, drop those above the price limit, rank the rest on risk-adjusted momentum and hold the top 15 or fewer in equal weight, then repeat on a fixed calendar." },
       { title: "Execution timing", body: "The signal is calculated at the close of a day and trades are assumed at the next day's close, so the test never uses information from the future." },
       { title: "What the engine cannot see", body: "The model ignores market impact beyond a fixed cost allowance, uses proxy indices for some universes, and cannot know which kind of market comes next." },
     ],

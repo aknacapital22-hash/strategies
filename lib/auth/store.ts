@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import strategies from "../strategies.json";
-import { PLANS, type PlanId } from "../pricing";
+import { ALL_ACCESS, PLANS, planFits, type PlanId } from "../pricing";
 import { query, transaction, uniqueViolation } from "../db";
 import { callBackend, usesRemoteBackend } from "../backend";
 
@@ -17,11 +17,13 @@ export type SubRequest = {
 };
 
 export const SLUGS = new Set((strategies as { slug: string }[]).map((s) => s.slug));
+/** What can be subscribed to: one basket, or All Access. */
+const isProduct = (slug: string) => SLUGS.has(slug) || slug === ALL_ACCESS;
 
 /** Demo accounts (the login page shows them while the demo mode is on). Created by `npm run db:migrate -- --import`. */
 export const DEMO = {
   admin: { name: "Admin", email: process.env.ADMIN_EMAIL ?? "admin@akna.test", password: process.env.ADMIN_PASSWORD ?? "Admin@12345" },
-  subscriber: { name: "Demo Subscriber", email: "demo@akna.test", phone: "9000000001", password: "Demo@12345", subs: ["allcap", "focused-largecap-20", "dynamic-asset-allocator"] },
+  subscriber: { name: "Demo Subscriber", email: "demo@akna.test", phone: "9000000001", password: "Demo@12345", subs: ["allcap", "focused-largecap-15", "dynamic-asset-allocator"] },
   free: { name: "Demo Free User", email: "free@akna.test", phone: "9000000002", password: "Free@12345", subs: [] as string[] },
 };
 
@@ -107,7 +109,7 @@ export async function setSubscription(userId: string, slug: string, on: boolean,
     await query("delete from subscriptions where user_id = $1 and slug = $2", [userId, slug]);
     return true;
   }
-  if (!SLUGS.has(slug)) return false;
+  if (!isProduct(slug)) return false;
   const rows = await query(
     `insert into subscriptions (user_id, slug, expires)
      select id, $2, now() + make_interval(days => $3) from users where id = $1
@@ -140,7 +142,7 @@ const toRequest = (r: ReqRow): SubRequest => ({
 /** A user asks for a plan. One open request per user and basket: asking again updates it. */
 export async function createRequest(userId: string, slug: string, plan: PlanId): Promise<SubRequest | null> {
   if (usesRemoteBackend()) return callBackend("createRequest", [userId, slug, plan]);
-  if (!SLUGS.has(slug) || !PLANS[plan] || !isUuid(userId)) return null;
+  if (!isProduct(slug) || !PLANS[plan] || !planFits(slug, plan) || !isUuid(userId)) return null;
   const [r] = await query<ReqRow>(
     `insert into requests (id, user_id, slug, plan, amount)
      select $1, id, $3, $4, $5 from users where id = $2
@@ -189,7 +191,7 @@ export async function decideRequest(id: string, approve: boolean, adminId: strin
     const r = found.rows[0];
     if (!r) return false;
     if (approve) {
-      if (!SLUGS.has(r.slug)) return false;
+      if (!isProduct(r.slug)) return false;
       await c.query(`insert into subscriptions (user_id, slug, expires) values ($1, $2, now() + make_interval(days => $3)) ${GRANT_CONFLICT}`, [r.user_id, r.slug, PLANS[r.plan].days]);
     }
     await c.query("update requests set status = $2, decided_at = now(), decided_by = $3, note = coalesce($4, note) where id = $1", [
@@ -197,6 +199,52 @@ export async function decideRequest(id: string, approve: boolean, adminId: strin
     ]);
     return true;
   });
+}
+
+/**
+ * Admin switches a plan on without waiting for a request (paid offline, or complimentary). It is saved as an approved
+ * request, so history and payment totals stay complete; a request already waiting for this basket is closed by it,
+ * so it cannot be approved again later. A basket that is already active is left alone, so a repeat adds nothing.
+ */
+export async function activatePlan(userId: string, slug: string, plan: PlanId, adminId: string, amount: string, utr?: string): Promise<"ok" | "invalid" | "active" | "used"> {
+  if (usesRemoteBackend()) return callBackend("activatePlan", [userId, slug, plan, adminId, amount, utr]);
+  const ref = utr?.trim().toUpperCase() || null;
+  if (!isUuid(userId) || !isUuid(adminId) || !isProduct(slug) || !Object.hasOwn(PLANS, plan) || !planFits(slug, plan)) return "invalid";
+  if (!/^\d{1,7}$/.test(amount) || (ref && !/^[A-Z0-9]{6,30}$/.test(ref))) return "invalid";
+  const paid = Number(amount);
+  const note = paid > 0 ? "Activated by admin" : "Activated by admin, no payment";
+  try {
+    return await transaction(async (c) => {
+      // The waiting request is locked first (the same order as decideRequest), so the two cannot both grant.
+      const waiting = await c.query<{ id: string }>("select id from requests where user_id = $1 and slug = $2 and status = 'pending' for update", [userId, slug]);
+      const granted = await c.query(
+        `insert into subscriptions (user_id, slug, expires)
+         select id, $2, now() + make_interval(days => $3) from users where id = $1 and role <> 'admin'
+         on conflict (user_id, slug) do update set expires = excluded.expires where subscriptions.expires <= now()
+         returning slug`,
+        [userId, slug, PLANS[plan].days],
+      );
+      if (!granted.rows.length) {
+        const member = await c.query("select 1 from users where id = $1 and role <> 'admin'", [userId]);
+        return member.rows.length ? "active" : "invalid";
+      }
+      if (waiting.rows[0]) {
+        await c.query(
+          "update requests set status = 'approved', plan = $2, amount = $3, utr = coalesce($4, utr), note = $5, decided_at = now(), decided_by = $6 where id = $1",
+          [waiting.rows[0].id, plan, paid, ref, note, adminId],
+        );
+      } else {
+        await c.query(
+          "insert into requests (id, user_id, slug, plan, amount, status, utr, note, decided_at, decided_by) values ($1, $2, $3, $4, $5, 'approved', $6, $7, now(), $8)",
+          [crypto.randomUUID(), userId, slug, plan, paid, ref, note, adminId],
+        );
+      }
+      return "ok";
+    });
+  } catch (e) {
+    if (uniqueViolation(e) === "requests_utr_key") return "used";
+    throw e;
+  }
 }
 
 export type AdminUser = {

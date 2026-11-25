@@ -4,15 +4,22 @@ import { notFound } from "next/navigation";
 import { getAdmin } from "@/lib/auth/session";
 import { allRequests, allUsers } from "@/lib/auth/store";
 import { strategies } from "@/lib/strategies";
-import { PLANS, dateIN, inr } from "@/lib/pricing";
+import { ALL_ACCESS, PLANS, dateIN, inr } from "@/lib/pricing";
 import { shortId } from "@/lib/payment";
-import { approveRequest, rejectRequest, revokeSubscription } from "./actions";
+import { activateSubscription, approveRequest, rejectRequest, revokeSubscription } from "./actions";
+import ActivatePlanForm from "@/components/ActivatePlanForm";
 import ConfirmButton from "@/components/ConfirmButton";
 
 export const metadata = { title: "Admin", robots: { index: false, follow: false } };
 
-type SP = { tab?: string; status?: string; q?: string };
-const names = Object.fromEntries(strategies.map((s) => [s.slug, s.name]));
+type SP = { tab?: string; status?: string; q?: string; result?: string; user?: string; basket?: string };
+const problems: Record<string, string> = {
+  active: "That basket is already active for this user. Nothing was changed.",
+  used: "That transaction ID is already attached to another request. Nothing was changed.",
+  invalid: "Check the basket, plan, amount (whole rupees) and transaction ID (6 to 30 letters or digits). Nothing was changed.",
+};
+const ALL_ACCESS_NAME = "All Access (every basket)";
+const names: Record<string, string> = { ...Object.fromEntries(strategies.map((s) => [s.slug, s.name])), [ALL_ACCESS]: ALL_ACCESS_NAME };
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
 const th = "p-3 text-left text-xs font-medium uppercase tracking-wide text-pmuted";
@@ -42,7 +49,15 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
   const pendingN = reqs.filter((r) => r.status === "pending").length;
   const activeSubs = members.reduce((a, u) => a + u.subs.length, 0);
   const revenue = reqs.filter((r) => r.status === "approved").reduce((a, r) => a + r.amount, 0);
-  const match = (u?: { name: string; email: string; phone?: string }) => !q || (!!u && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (u.phone ?? "").includes(q.replace(/[^0-9]/g, "") || "~")));
+  // A mobile number is only searched when the query looks like one (with or without +91, spaces or dashes).
+  const digits = /^[+\d\s-]+$/.test(q) ? q.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "") : "";
+  const match = (u?: { name: string; email: string; phone?: string }) => !q || (!!u && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (digits !== "" && (u.phone ?? "").includes(digits))));
+  const options = [{ slug: ALL_ACCESS, name: ALL_ACCESS_NAME }, ...strategies.map((s) => ({ slug: s.slug, name: s.name })).sort((a, b) => a.name.localeCompare(b.name))];
+  // The success message is read back from the stored plan, so a hand-typed address cannot claim an activation.
+  const done = sp.result === "ok" ? byId.get(sp.user ?? "") : undefined;
+  const doneSub = done?.subs.find((s) => s.slug === sp.basket);
+  const problem = Object.hasOwn(problems, sp.result ?? "") ? problems[sp.result as string] : "";
+  const subscriberHits = q ? subscribers.filter(match).length : 0;
 
   const link = (t: string, extra = "") => `/admin?tab=${t}${extra}${q ? `&q=${encodeURIComponent(q)}` : ""}`;
 
@@ -176,18 +191,36 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
 
       {tab === "others" && (
         <section className="mt-6" aria-label="Non-subscribers">
+          {done && doneSub && (
+            <p role="status" className="card mb-3 p-4 text-sm"><span className="up font-semibold">▲ Plan activated.</span> {done.name} has {names[doneSub.slug] ?? doneSub.slug} until {dateIN(doneSub.expires)}. <Link href={`/admin?tab=subscribers&q=${encodeURIComponent(done.email)}`} className="font-medium text-aink hover:underline">View in Subscribers →</Link></p>
+          )}
+          {problem && <p role="alert" className="card down mb-3 p-4 text-sm font-medium">{problem}</p>}
+          <p className="mb-3 text-sm text-pmuted">
+            Search by name, email or mobile number, then use <strong>Activate plan</strong>. No request is needed.
+            {q && <> Showing results for “{q}”. <Link href="/admin?tab=others" className="font-medium text-aink hover:underline">Clear search</Link>.</>}
+            {subscriberHits > 0 && <> Also matching: <Link href={link("subscribers")} className="font-medium text-aink hover:underline">{subscriberHits} subscriber{subscriberHits === 1 ? "" : "s"} →</Link></>}
+          </p>
           <div className="card overflow-x-auto">
-            <table className="num w-full min-w-[720px] text-sm">
+            <table className="num w-full min-w-[920px] text-sm">
               <caption className="sr-only">Users without an active subscription</caption>
-              <thead><tr className="border-b border-pline">{["User", "Joined", "Past baskets", "Pending requests"].map((h) => <th key={h} scope="col" className={th}>{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-pline">{["User", "Joined", "Past baskets", "Pending requests", "Plan"].map((h) => <th key={h} scope="col" className={th}>{h}</th>)}</tr></thead>
               <tbody>
-                {others.filter(match).length === 0 && <tr><td colSpan={4} className="p-6 text-center text-pmuted">No users match.</td></tr>}
+                {others.filter(match).length === 0 && <tr><td colSpan={5} className="p-6 text-center text-pmuted">No non-subscribers match.</td></tr>}
                 {others.filter(match).map((u) => (
                   <tr key={u.id} className="border-b border-pline last:border-0" data-user={u.email}>
                     <td className={td}><span className="font-medium">{u.name}</span><br /><span className="text-xs text-pmuted">{u.email}</span>{u.phone && <><br /><span className="text-xs text-pmuted">{u.phone}</span></>}</td>
                     <td className={`${td} whitespace-nowrap text-pmuted`}>{dateIN(u.created)}</td>
                     <td className={`${td} text-pmuted`}>{u.expired.length ? u.expired.map((s) => names[s] ?? s).join(", ") + " (expired)" : "-"}</td>
                     <td className={td}>{reqs.filter((r) => r.userId === u.id && r.status === "pending").length || "-"}</td>
+                    <td className={td}>
+                      <ActivatePlanForm
+                        action={activateSubscription}
+                        user={{ id: u.id, name: u.name }}
+                        q={q}
+                        baskets={options}
+                        waiting={reqs.filter((r) => r.userId === u.id && r.status === "pending").map((r) => ({ slug: r.slug, plan: r.plan, amount: r.amount }))}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>

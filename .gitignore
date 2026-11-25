@@ -48,3 +48,4 @@ engine/data/
 # python
 __pycache__/
 *.pyc
+.next-*/

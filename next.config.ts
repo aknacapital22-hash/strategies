@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/engine", destination: "/strategies", permanent: true },
+      { source: "/strategies/focused-largecap-20", destination: "/strategies/focused-largecap-15", permanent: true },
+      { source: "/subscribe/focused-largecap-20", destination: "/subscribe/focused-largecap-15", permanent: true },
       { source: "/reset-password", destination: "/forgot-password", permanent: false },
     ];
   },

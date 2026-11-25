@@ -188,3 +188,8 @@ input[type="range"] { accent-color: var(--accent-ink); }
 @media (prefers-reduced-motion: reduce) { [role="tabpanel"], [role="region"] { animation: none !important; } }
 .snap-row { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: .75rem; scrollbar-width: thin; }
 .snap-row > * { scroll-snap-align: start; flex: 0 0 min(300px, 82%); }
+
+/* The logo has a version for each theme */
+.logo-dark { display: none !important; }
+:root[data-theme="dark"] .logo-light { display: none !important; }
+:root[data-theme="dark"] .logo-dark { display: block !important; }

@@ -1,11 +1,12 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { strategies, pct, growthSeries } from "@/lib/strategies";
+import { DATA_AS_OF, strategies, pct, growthSeries } from "@/lib/strategies";
 import { sparkPath } from "@/lib/growth";
 import { SparkSvg } from "@/components/Sparkline";
 import SectionNav from "@/components/SectionNav";
-import { PLANS, dateIN, inr } from "@/lib/pricing";
+import { BannerCta, BarCta, HeroCta } from "@/components/BasketCta";
+import { dateIN } from "@/lib/pricing";
 import { scheduleFor } from "@/lib/engine";
 import Curve from "@/components/Curve";
 import HoldingsGate from "@/components/HoldingsGate";
@@ -59,7 +60,7 @@ async function StrategyContent({ params }: { params: Promise<{ slug: string }> }
   const alpha = s.cagr - s.benchmark.cagr;
   const hv = growthSeries(s);
   const model = s.growth?.model ?? hv[hv.length - 1];
-  const nifty = s.growth?.nifty ?? s.benchmark.growth;
+  const nifty = s.benchmark.growth; // the basket's own benchmark, which the panel names
   const lakh = (v: number) => `₹${(v / 100).toFixed(v >= 1000 ? 0 : 1)}L`;
   const facts: [string, string, string, string][] = [
     ["▲", "CAGR, model", `${s.cagr.toFixed(1)}%`, "up"],
@@ -96,11 +97,12 @@ async function StrategyContent({ params }: { params: Promise<{ slug: string }> }
               ))}
             </dl>
 
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link href={`/subscribe/${s.slug}`} className="btn btn-primary !px-6 !py-3">Subscribe from {inr(PLANS.quarter.price)} →</Link>
-              <a href="#performance" className="btn btn-ghost !px-6 !py-3">See the track record</a>
+            {/* The placeholder offers nothing, so a subscriber never sees "Subscribe" flash up while their plan loads. */}
+            <div className="mt-6">
+              <Suspense fallback={<div className="h-[4.75rem]" aria-busy />}>
+                <HeroCta slug={s.slug} />
+              </Suspense>
             </div>
-            <p className="mt-2 text-xs text-pmuted">Per basket · no lock-in · model, back tested, not a promise of returns.</p>
           </div>
 
           <div className="hero-bg relative overflow-hidden rounded-2xl p-5 md:p-6">
@@ -121,7 +123,7 @@ async function StrategyContent({ params }: { params: Promise<{ slug: string }> }
         </div>
       </div>
 
-      <SectionNav items={tabs as unknown as [string, string][]} cta={{ href: `/subscribe/${s.slug}`, label: "Subscribe" }} />
+      <SectionNav items={tabs as unknown as [string, string][]} action={<Suspense fallback={null}><BarCta slug={s.slug} /></Suspense>} />
 
       <div className="wrap pb-16">
         <section id="performance" className="scroll-mt-32 pt-14">
@@ -233,21 +235,16 @@ async function StrategyContent({ params }: { params: Promise<{ slug: string }> }
         <div className="hero-bg relative mt-16 overflow-hidden rounded-2xl p-7 md:p-10">
           <div className="grid-lines absolute inset-0" aria-hidden />
           <div className="relative flex flex-wrap items-center justify-between gap-5">
-            <div>
-              <h2 className="h2 !text-white">See what {s.name} holds today</h2>
-              <p className="mt-2 text-sm text-teal-100/90">Every stock, its weight, and a rebalance calculator for your broker.</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link href={`/subscribe/${s.slug}`} className="btn btn-light">Subscribe from {inr(PLANS.quarter.price)}</Link>
-              <Link href="/start" className="btn btn-outline-light">Not sure? Take the quiz</Link>
-            </div>
+            <Suspense fallback={<div className="h-16" aria-busy />}>
+              <BannerCta slug={s.slug} name={s.name} />
+            </Suspense>
           </div>
         </div>
 
         <details className="mt-14 text-xs text-pmuted">
           <summary className="flex w-fit items-center gap-2 font-medium text-ptext">Important disclosures <span className="plus inline-block transition-transform" aria-hidden>+</span></summary>
           <p className="mt-3 max-w-3xl leading-relaxed">
-            Figures are model, back tested, as of 13 Nov 2026. Not a promise of future
+            Figures are model, back tested, as of {DATA_AS_OF}. Not a promise of future
             returns.
           </p>
         </details>

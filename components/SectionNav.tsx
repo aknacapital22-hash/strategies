@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-/** Sticky in-page tabs that highlight the section being read, with the subscribe action always in reach. */
-export default function SectionNav({ items, cta }: { items: [string, string][]; cta: { href: string; label: string } }) {
+/** Sticky in-page tabs that highlight the section being read, with the basket's next step always in reach. */
+export default function SectionNav({ items, action }: { items: [string, string][]; action: ReactNode }) {
   const [active, setActive] = useState(items[0][0]);
   useEffect(() => {
     const els = items.map(([id]) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
@@ -32,7 +31,7 @@ export default function SectionNav({ items, cta }: { items: [string, string][]; 
             {label}
           </a>
         ))}
-        <Link href={cta.href} className="btn btn-primary ml-auto !min-h-0 !py-1.5 whitespace-nowrap">{cta.label}</Link>
+        <div className="ml-auto">{action}</div>
       </div>
     </nav>
   );

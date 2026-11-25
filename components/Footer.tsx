@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { DATA_AS_OF } from "@/lib/strategies";
+import Brand from "@/components/Brand";
 import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/payment";
 
@@ -13,12 +14,12 @@ export default function Footer() {
     <footer className="mt-10 border-t border-pline bg-page3">
       <div className="wrap grid gap-10 py-14 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
-          <Link href="/" className="flex items-center gap-2.5 font-bold">
-            <Image src="/logo.svg" alt="" width={40} height={40} unoptimized className="h-10 w-10 shrink-0 rounded-[10px] shadow-sm" />
-            AKNA Capital Stock Strategies
+          <Link href="/" className="inline-block" aria-label="15Stocks by AKNA Capital, home">
+            <Brand />
           </Link>
           <p className="mt-4 max-w-xs text-sm text-pmuted">
-            Proprietary alpha strategies. Your broker, your own demat, every trade approved by you.
+            <span className="block font-semibold text-ptext">Systematic investing for wealth creation.</span>
+            <span className="mt-1 block">Research index strategies and approve rebalances in your own demat.</span>
           </p>
           <p className="mt-3 text-sm"><a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-aink hover:underline">{CONTACT_EMAIL}</a></p>
         </div>
@@ -46,7 +47,7 @@ export default function Footer() {
             </p>
           </details>
           <p className="mt-4 text-xs text-pmuted">
-            © AKNA Capital Stock Strategies. We are a technology company and are not registered with SEBI as an investment adviser or research analyst. Content is for educational purposes only and is not investment advice. Strategy figures are model, back tested numbers (13 Nov 2026).
+            © 15Stocks by AKNA Capital. We are a technology company and are not registered with SEBI as an investment adviser or research analyst. Content is for educational purposes only and is not investment advice. Strategy figures are model, back tested numbers ({DATA_AS_OF}).
           </p>
         </div>
       </div>

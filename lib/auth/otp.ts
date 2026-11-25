@@ -70,7 +70,7 @@ export async function loginSucceeded(email: string, visitor: string): Promise<vo
 /** Emails the code. While developing without a mail key, it goes to the demo inbox instead. */
 async function deliver(purpose: Purpose, email: string, code: string): Promise<boolean> {
   const what = purpose === "signup" ? "finish creating your account" : "reset your password";
-  const subject = `${code} is your AKNA Capital code`;
+  const subject = `${code} is your 15Stocks code`;
   if (mailConfigured()) {
     if (!(await underDailyLimit())) return false;
     return sendMail(email, subject, `Your code to ${what} is ${code}.\n\nIt works for ${CODE_MINUTES} minutes. Never share it with anyone: we will never ask you for it.\n\nIf you did not ask for this, you can ignore this email.`);

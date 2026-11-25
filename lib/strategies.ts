@@ -1,7 +1,6 @@
 import raw from "./strategies.json";
 
-// Model, back tested strategy data as of 13 Nov 2026.
-// Regenerate with scripts/build_data.py.
+// Model, back tested strategy data, rebuilt from the engine by engine/site_data.py.
 export type Strategy = {
   slug: string;
   name: string;
@@ -30,6 +29,9 @@ import { fullLabel, minimumFor, shortLabel } from "./minimum";
 
 // The source data lists its own minimum for each strategy. Here each basket's minimum is worked out from the
 // prices and weights of its current stocks (capped at ₹2 lakh), in the field and in the sentence that quotes it.
+/** The last day covered by the back tests. */
+export const DATA_AS_OF = (raw as Strategy[])[0].growth!.end;
+
 export const strategies = (raw as Strategy[]).map((s) => {
   const min = minimumFor(s.slug);
   return {

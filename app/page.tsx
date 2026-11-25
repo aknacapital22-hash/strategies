@@ -6,10 +6,10 @@ import Faq from "@/components/Faq";
 import Tabs from "@/components/Tabs";
 import GrowthArt from "@/components/GrowthArt";
 import StickyCta from "@/components/StickyCta";
-import { strategies, growthSeries, minimumRange } from "@/lib/strategies";
+import { strategies, growthSeries, minimumRange, DATA_AS_OF } from "@/lib/strategies";
 import { shortLabel } from "@/lib/minimum";
 import { sparkPath } from "@/lib/growth";
-import { QUARTER, YEAR } from "@/lib/pricing";
+import { QUARTER, YEAR, ALL_ACCESS_PRICE } from "@/lib/pricing";
 
 const pillars = [
   ["Every trade is yours", "Nothing happens until you approve it. Your broker places the orders and the shares stay in your demat.", "✓", "/product"],
@@ -110,7 +110,7 @@ export default function Home() {
     <div>
       <StrategyRail cards={cards} />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-[11px] text-pmuted">Model, back tested, as of 13 Nov 2026. Higher returns also came with deeper falls. Swipe or scroll for more.</p>
+        <p className="text-[11px] text-pmuted">Model, back tested, as of {DATA_AS_OF}. Higher returns also came with deeper falls. Swipe or scroll for more.</p>
         <Link href="/strategies" className="btn btn-ghost !py-1.5">See all {list.length} →</Link>
       </div>
     </div>
@@ -155,15 +155,15 @@ export default function Home() {
       <GrowthArt series={list} lead={hero.slug} />
       <section className="wrap grid items-center gap-8 pb-8 pt-8 md:pt-12 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:py-20">
         <div>
-          <h1 className="h1">The edge the index <span className="text-aink">never gives you.</span></h1>
-          <p className="lead mt-4 max-w-lg">Rules-based quant models scan the market on a fixed calendar and hand you the trades to approve in your own demat. Every holding is visible, every trade is yours to approve.</p>
+          <h1 className="h1">Systematic investing for <span className="text-aink">wealth creation.</span></h1>
+          <p className="lead mt-4 max-w-lg">Research index strategies and approve rebalances in your own demat.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link href="/start" className="btn btn-primary !px-6 !py-3">Unlock my strategy →</Link>
             <Link href="/strategies" className="btn btn-ghost !px-6 !py-3">See the results</Link>
           </div>
           <p className="mt-3 text-xs text-pmuted">Free to explore · No account needed · Leave any time</p>
           <dl className="mt-7 flex flex-wrap gap-x-8 gap-y-3 border-t border-pline pt-5">
-            {[[String(list.length), "strategies"], [YEAR, `a year per basket, or ${QUARTER} a quarter`], ["₹0", "held by the platform"]].map(([n, l]) => (
+            {[[String(list.length), "strategies"], [YEAR, `a year per basket, or ${QUARTER} a quarter`], [ALL_ACCESS_PRICE, "a year for all baskets"], ["₹0", "held by the platform"]].map(([n, l]) => (
               <div key={l}><dd className="num text-xl font-extrabold">{n}</dd><dt className="text-xs text-pmuted">{l}</dt></div>
             ))}
           </dl>
