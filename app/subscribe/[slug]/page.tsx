@@ -5,7 +5,7 @@ import { getBasket } from "@/lib/auth/basket";
 import { RENEW_WINDOW_DAYS, canRequest, payHref } from "@/lib/subscription";
 import { requestSubscription } from "@/app/auth/actions";
 import { strategies } from "@/lib/strategies";
-import { ALL_ACCESS, ALL_ACCESS_PRICE, FOUR_QUARTERS, PLANS, YEARLY_SAVING, dateIN, inr, isBasketPlan, perMonth } from "@/lib/pricing";
+import { ALL_ACCESS, ALL_ACCESS_PRICE, FOUR_QUARTERS, NOTIFY_LINE, PLANS, YEARLY_SAVING, dateIN, inr, isBasketPlan, perMonth } from "@/lib/pricing";
 
 export const metadata = { title: "Subscribe to a basket" };
 
@@ -106,6 +106,7 @@ async function Inner({ params, searchParams }: { params: Promise<{ slug: string 
           </fieldset>
           <button className="btn btn-primary mt-6 w-full !py-3">Continue to payment</button>
         </form>
+        <p className="mt-2 text-center text-xs text-pmuted">{NOTIFY_LINE}</p>
         <p className="mt-4 rounded-xl border border-dashed border-pline p-3 text-center text-sm">
           Want more than one basket? <Link href={`/subscribe/${ALL_ACCESS}`} className="font-semibold text-aink hover:underline">Unlock all baskets for {ALL_ACCESS_PRICE} a year →</Link>
         </p>

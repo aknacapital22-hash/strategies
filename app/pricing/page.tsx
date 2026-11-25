@@ -1,7 +1,7 @@
 import Link from "next/link";
 import FeeCalculator from "@/components/FeeCalculator";
 import Faq from "@/components/Faq";
-import { ALL_ACCESS, ALL_ACCESS_PRICE, ALL_ACCESS_SAVING, BASKET_COUNT, PLANS, YEARLY_SAVING, FOUR_QUARTERS, costPercent, inr, QUARTER, YEAR } from "@/lib/pricing";
+import { ALL_ACCESS, ALL_ACCESS_PRICE, ALL_ACCESS_SAVING, BASKET_COUNT, NOTIFY_LINE, PLANS, YEARLY_SAVING, FOUR_QUARTERS, costPercent, inr, QUARTER, YEAR } from "@/lib/pricing";
 
 // The flat yearly price as a share of different amounts. One 0 to 6% scale.
 const SCALE = 6;
@@ -48,6 +48,8 @@ export default function Pricing() {
           <Link href={`/subscribe/${ALL_ACCESS}`} className="btn btn-primary mt-5 w-full">Unlock all baskets →</Link>
         </div>
       </div>
+
+      <p className="mt-3 text-xs text-pmuted">{NOTIFY_LINE}</p>
 
       <div className="mt-12 grid items-start gap-8 md:grid-cols-2">
         <FeeCalculator />

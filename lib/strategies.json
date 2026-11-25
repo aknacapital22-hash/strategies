@@ -9,7 +9,7 @@
     "minimum": "₹12K",
     "slug": "focused-alpha-5",
     "summary": "Focused Alpha 5 is an AKNA Capital index that holds 5 stocks from the Nifty Alpha 50, ranked by price momentum, rebalanced every 3 weeks. Model CAGR 22.7% (back tested, as of 23 Nov 2026), minimum about ₹12,000 (as of 23 Nov 2026), very high risk band.",
-    "backtest": "22.72% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 10.15% for the Nifty 500 over the same window. Deepest fall −44.47%. Not a promise of future returns.",
+    "backtest": "22.72% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 10.15% for the Nifty 500 over the same window. Deepest fall −44.47%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -800,7 +800,7 @@
     "minimum": "₹3L",
     "slug": "allcap",
     "summary": "Allcap is an AKNA Capital index that holds 15 stocks from the Nifty Total Market, ranked by price momentum, rebalanced every 2 weeks. Model CAGR 37.3% (back tested, as of 23 Nov 2026), minimum about ₹3,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "37.28% a year since inception on 25 Nov 2022, to 23 Nov 2026, after charges, against 10.47% for the Nifty 500 over the same window. Deepest fall −37.74%. Not a promise of future returns.",
+    "backtest": "37.28% a year since inception on 25 Nov 2022, to 23 Nov 2026, after estimated trading charges, against 10.47% for the Nifty 500 over the same window. Deepest fall −37.74%. Not a promise of future returns.",
     "growth": {
       "start": "25 Nov 2022",
       "end": "23 Nov 2026",
@@ -1540,7 +1540,7 @@
     "minimum": "₹5L",
     "slug": "dynamic-asset-allocator",
     "summary": "Dynamic Asset Allocator is an AKNA Capital index that holds 15 stocks from the Nifty Total Market plus debt and gold, with the mix shifted by market regime, rebalanced every 2 weeks. Model CAGR 42.3% (back tested, as of 23 Nov 2026), minimum about ₹5,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "42.34% a year since inception on 25 Nov 2022, to 23 Nov 2026, after charges, against 10.47% for the Nifty 500 over the same window. Deepest fall −18.94%. Not a promise of future returns.",
+    "backtest": "42.34% a year since inception on 25 Nov 2022, to 23 Nov 2026, after estimated trading charges, against 10.47% for the Nifty 500 over the same window. Deepest fall −18.94%. Not a promise of future returns.",
     "growth": {
       "start": "25 Nov 2022",
       "end": "23 Nov 2026",
@@ -2280,7 +2280,7 @@
     "minimum": "₹2.5L",
     "slug": "midcap-smallcap",
     "summary": "Midcap Smallcap is an AKNA Capital index that holds 15 stocks from the NSE Universe, ranked by price momentum, rebalanced every 2 weeks. Model CAGR 43.3% (back tested, as of 23 Nov 2026), minimum about ₹2,50,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "43.28% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 14.35% for the Nifty Midcap 150 + Smallcap 250 (50:50) over the same window. Deepest fall −37.89%. Not a promise of future returns.",
+    "backtest": "43.28% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 14.35% for the Nifty Midcap 150 + Smallcap 250 (50:50) over the same window. Deepest fall −37.89%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -3149,7 +3149,7 @@
     "minimum": "₹2.5L",
     "slug": "microcap",
     "summary": "Microcap is an AKNA Capital index that holds 15 stocks from the Nifty Microcap 250, ranked by price momentum, rebalanced every 2 weeks. Model CAGR 39.5% (back tested, as of 23 Nov 2026), minimum about ₹2,50,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "39.52% a year since inception on 25 Nov 2022, to 23 Nov 2026, after charges, against 16.31% for the Nifty Smallcap 250 over the same window. Deepest fall −41.94%. Not a promise of future returns.",
+    "backtest": "39.52% a year since inception on 25 Nov 2022, to 23 Nov 2026, after estimated trading charges, against 16.31% for the Nifty Smallcap 250 over the same window. Deepest fall −41.94%. Not a promise of future returns.",
     "growth": {
       "start": "25 Nov 2022",
       "end": "23 Nov 2026",
@@ -3889,7 +3889,7 @@
     "minimum": "₹2.5L",
     "slug": "large-midcap",
     "summary": "Large Midcap is an AKNA Capital index that holds 15 stocks from the Nifty LargeMidCap 250, ranked by price momentum, rebalanced every 2 weeks. Model CAGR 33.8% (back tested, as of 23 Nov 2026), minimum about ₹2,50,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "33.79% a year since inception on 12 Aug 2022, to 23 Nov 2026, after charges, against 12.73% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −20.73%. Not a promise of future returns.",
+    "backtest": "33.79% a year since inception on 12 Aug 2022, to 23 Nov 2026, after estimated trading charges, against 12.73% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −20.73%. Not a promise of future returns.",
     "growth": {
       "start": "12 Aug 2022",
       "end": "23 Nov 2026",
@@ -4643,7 +4643,7 @@
     "minimum": "₹2.5L",
     "slug": "midcap",
     "summary": "Midcap is an AKNA Capital index that holds 15 stocks from the Nifty Midcap 150, ranked by price momentum, rebalanced every 2 weeks. Model CAGR 32.3% (back tested, as of 23 Nov 2026), minimum about ₹2,50,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "32.34% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 14.97% for the Nifty Midcap 150 over the same window. Deepest fall −23.76%. Not a promise of future returns.",
+    "backtest": "32.34% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 14.97% for the Nifty Midcap 150 over the same window. Deepest fall −23.76%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -5500,7 +5500,7 @@
     "minimum": "₹3L",
     "slug": "largemid-multi-asset",
     "summary": "Large Mid Multi Asset is an AKNA Capital index that holds 15 stocks from the Nifty LargeMidCap 250, ranked by momentum, with 10% in debt and 10% in gold, rebalanced every 2 weeks. Model CAGR 29.0% (back tested, as of 23 Nov 2026), minimum about ₹3,00,000 (as of 23 Nov 2026), moderate risk band.",
-    "backtest": "28.96% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 11.88% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −16.91%. Not a promise of future returns.",
+    "backtest": "28.96% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 11.88% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −16.91%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -6371,7 +6371,7 @@
     "minimum": "₹3L",
     "slug": "large-mid-hybrid",
     "summary": "Large Mid Hybrid is an AKNA Capital index that holds 15 stocks from the Nifty LargeMidCap 250, ranked by momentum, with 20% in debt, rebalanced every 2 weeks. Model CAGR 27.2% (back tested, as of 23 Nov 2026), minimum about ₹3,00,000 (as of 23 Nov 2026), moderate risk band.",
-    "backtest": "27.23% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 11.88% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −16.64%. Not a promise of future returns.",
+    "backtest": "27.23% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 11.88% for the Nifty 100 + Midcap 150 (50:50) over the same window. Deepest fall −16.64%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -7233,7 +7233,7 @@
     "minimum": "₹15K",
     "slug": "energy-basket",
     "summary": "Energy Basket is an AKNA Capital index that holds 10 stocks from the CNX Energy, ranked by price momentum, rebalanced every week. Model CAGR 26.1% (back tested, as of 23 Nov 2026), minimum about ₹15,000 (as of 23 Nov 2026), high risk band.",
-    "backtest": "26.07% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 9.93% for the Nifty Energy over the same window. Deepest fall −35.00%. Not a promise of future returns.",
+    "backtest": "26.07% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 9.93% for the Nifty Energy over the same window. Deepest fall −35.00%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -8045,7 +8045,7 @@
     "minimum": "₹2L",
     "slug": "focused-largecap-15",
     "summary": "Focused Largecap 15 is an AKNA Capital index that holds 15 stocks from the Nifty 100, ranked by price momentum, rebalanced every 4 weeks. Model CAGR 25.1% (back tested, as of 23 Nov 2026), minimum about ₹2,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "25.14% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −22.79%. Not a promise of future returns.",
+    "backtest": "25.14% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −22.79%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -8898,7 +8898,7 @@
     "minimum": "₹42K",
     "slug": "healthcare-basket",
     "summary": "Healthcare Basket is an AKNA Capital index that holds 10 stocks from the Nifty MidSmall Healthcare, ranked by price momentum, rebalanced every week. Model CAGR 22.3% (back tested, as of 23 Nov 2026), minimum about ₹42,000 (as of 23 Nov 2026), high risk band.",
-    "backtest": "22.34% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 10.15% for the Nifty 500 over the same window. Deepest fall −27.14%. Not a promise of future returns.",
+    "backtest": "22.34% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 10.15% for the Nifty 500 over the same window. Deepest fall −27.14%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -9702,7 +9702,7 @@
     "minimum": "₹3L",
     "slug": "largecap-multi-asset",
     "summary": "Large Cap Multi Asset is an AKNA Capital index that holds 15 stocks from the Nifty 100, ranked by momentum, with 10% in debt and 10% in gold, rebalanced every 4 weeks. Model CAGR 23.0% (back tested, as of 23 Nov 2026), minimum about ₹3,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "22.99% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −16.57%. Not a promise of future returns.",
+    "backtest": "22.99% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −16.57%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -10573,7 +10573,7 @@
     "minimum": "₹2L",
     "slug": "largecap-hybrid",
     "summary": "Largecap Hybrid is an AKNA Capital index that holds 15 stocks from the Nifty 100, ranked by momentum, with 20% in debt, rebalanced every 4 weeks. Model CAGR 21.4% (back tested, as of 23 Nov 2026), minimum about ₹2,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "21.35% a year since inception on 22 Nov 2021, to 23 Nov 2026, after charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −16.44%. Not a promise of future returns.",
+    "backtest": "21.35% a year since inception on 22 Nov 2021, to 23 Nov 2026, after estimated trading charges, against 8.71% for the Nifty 100 over the same window. Deepest fall −16.44%. Not a promise of future returns.",
     "growth": {
       "start": "22 Nov 2021",
       "end": "23 Nov 2026",
@@ -11435,7 +11435,7 @@
     "minimum": "₹3L",
     "slug": "allcap-multi-asset",
     "summary": "Allcap Multi Asset is an AKNA Capital index that holds 15 stocks from the Nifty Total Market, ranked by momentum, with 10% in debt and 10% in gold, rebalanced every 2 weeks. Model CAGR 6.3% (back tested, as of 23 Nov 2026), minimum about ₹3,00,000 (as of 23 Nov 2026), moderately high risk band.",
-    "backtest": "6.29% a year since inception on 18 Nov 2024, to 23 Nov 2026, after charges, against 2.31% for the Nifty 500 over the same window. Deepest fall −28.27%. Not a promise of future returns.",
+    "backtest": "6.29% a year since inception on 18 Nov 2024, to 23 Nov 2026, after estimated trading charges, against 2.31% for the Nifty 500 over the same window. Deepest fall −28.27%. Not a promise of future returns.",
     "growth": {
       "start": "18 Nov 2024",
       "end": "23 Nov 2026",

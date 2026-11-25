@@ -6,7 +6,7 @@ import { sparkPath } from "@/lib/growth";
 import { SparkSvg } from "@/components/Sparkline";
 import SectionNav from "@/components/SectionNav";
 import { BannerCta, BarCta, HeroCta } from "@/components/BasketCta";
-import { dateIN } from "@/lib/pricing";
+import { NOTIFY_LINE, dateIN } from "@/lib/pricing";
 import { scheduleFor } from "@/lib/engine";
 import Curve from "@/components/Curve";
 import HoldingsGate from "@/components/HoldingsGate";
@@ -85,6 +85,7 @@ async function StrategyContent({ params }: { params: Promise<{ slug: string }> }
             {sched && (
               <p className="num mt-3 text-sm text-pmuted" data-schedule>
                 Rebalances every {sched.everyWeeks} week{sched.everyWeeks > 1 ? "s" : ""} · next on <b className="text-ptext">{dateIN(sched.next)}</b>
+                <span className="mt-1 block text-xs">{NOTIFY_LINE}</span>
               </p>
             )}
 

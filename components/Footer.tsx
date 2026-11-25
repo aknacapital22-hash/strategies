@@ -1,5 +1,6 @@
 import { DATA_AS_OF } from "@/lib/strategies";
 import Brand from "@/components/Brand";
+import { RETURNS_NOTE } from "@/lib/pricing";
 import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/payment";
 
@@ -47,7 +48,7 @@ export default function Footer() {
             </p>
           </details>
           <p className="mt-4 text-xs text-pmuted">
-            © 15Stocks by AKNA Capital. We are a technology company and are not registered with SEBI as an investment adviser or research analyst. Content is for educational purposes only and is not investment advice. Strategy figures are model, back tested numbers ({DATA_AS_OF}).
+            © 15Stocks by AKNA Capital. We are a technology company and are not registered with SEBI as an investment adviser or research analyst. Content is for educational purposes only and is not investment advice. Strategy figures are model, back tested numbers ({DATA_AS_OF}). {RETURNS_NOTE}
           </p>
         </div>
       </div>

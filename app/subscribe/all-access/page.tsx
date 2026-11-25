@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getViewer } from "@/lib/auth/basket";
 import { requestSubscription } from "@/app/auth/actions";
 import { strategies } from "@/lib/strategies";
-import { ALL_ACCESS, ALL_ACCESS_SAVING, PLANS, dateIN, inr } from "@/lib/pricing";
+import { ALL_ACCESS, ALL_ACCESS_SAVING, NOTIFY_LINE, PLANS, dateIN, inr } from "@/lib/pricing";
 import { RENEW_WINDOW_DAYS, basketState, canRequest, payHref } from "@/lib/subscription";
 
 export const metadata = { title: "All Access: every basket" };
@@ -58,6 +58,7 @@ async function Inner() {
           <input type="hidden" name="plan" value={plan.id} />
           <button className="btn btn-primary w-full !py-3">Continue to payment</button>
         </form>
+        <p className="mt-2 text-center text-xs text-pmuted">{NOTIFY_LINE}</p>
         <p className="mt-3 text-center text-xs text-pmuted">You pay by UPI on the next page, and your plan is switched on after we confirm the payment. Figures are model, back tested; you can lose money.</p>
       </div>
     </div>

@@ -78,7 +78,7 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <p className="mt-3 text-center text-[11px] leading-relaxed text-pmuted">Hypothetical, model, back tested results after charges. Not a promise of future returns. Back tests flatter the past, and you can lose money.</p>
+      <p className="mt-3 text-center text-[11px] leading-relaxed text-pmuted">Hypothetical, model, back tested results after estimated trading charges. Not a promise of future returns. Back tests flatter the past, and you can lose money.</p>
     </div>
   );
 

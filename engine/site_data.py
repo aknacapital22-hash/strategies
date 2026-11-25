@@ -119,7 +119,7 @@ def entry(old, nav, rebalances, result, nifty50):
 
 def backtest_line(e):
     since = f"a year since inception on {e['growth']['start']}"
-    return (f"{minus(e['cagr'])}% {since}, to {e['growth']['end']}, after charges, against {minus(e['benchmark']['cagr'])}% "
+    return (f"{minus(e['cagr'])}% {since}, to {e['growth']['end']}, after estimated trading charges, against {minus(e['benchmark']['cagr'])}% "
             f"for the {e['benchmark']['name']} over the same window. Deepest fall {minus(e['maxDdExact'])}%. Not a promise of future returns.")
 
 

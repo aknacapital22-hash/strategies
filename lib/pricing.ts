@@ -1,3 +1,9 @@
+/** Shown in small print wherever someone is choosing or following a basket. */
+export const NOTIFY_LINE = "Each rebalance will be notified to you via email.";
+/** What the back tested returns do and do not take off. It must stay true to COST in engine/engine.py. */
+export const RETURNS_NOTE =
+  "Returns shown are model, back tested. They are after an estimate of 0.32% of the value traded for trading charges, and before your subscription fee, any other broker charges, price slippage and tax on gains.";
+
 // One place for the prices, so every page and calculation agrees. Prices are per basket.
 export type PlanId = "quarter" | "year" | "all";
 
