@@ -2,6 +2,7 @@ import LegalPage, { type LegalSection } from "@/components/LegalPage";
 import { PRICE_LINE } from "@/lib/pricing";
 import { PAYEE_NAME, UPI_ID } from "@/lib/payment";
 import { pageMeta } from "@/lib/seo";
+import { RESEARCH_LINE } from "@/lib/research";
 
 export const metadata = pageMeta({ title: "Terms and Conditions", description: "The rules for using 15Stocks by AKNA Capital: plans, payment, what we do and do not do, and risks.", path: "/terms" });
 
@@ -10,7 +11,8 @@ const sections: LegalSection[] = [
   { h: "2. Who can use it", p: ["You must be at least 18 years old and able to make a legal agreement in India. Give correct details and keep your password and email codes private. Your account is for you only."] },
   { h: "3. What the service is", p: [
     "We show ready-made lists of shares (baskets) that are chosen by fixed rules, with results from testing those rules on old prices, list updates and a calculator.",
-    "We are a technology company. We are not registered with SEBI as an investment adviser or research analyst. We do not give advice made for you, and nothing here is a recommendation that any share or basket is right for you. The 3-question tool only points to a basket to read about. Please speak to a SEBI registered adviser before you invest.",
+    `${RESEARCH_LINE} See the Research Analyst Details page.`,
+    "We do not give advice made for you personally, and nothing here says that a share or basket is right for your own situation. The 3-question tool only points to a basket to read about. If you are not sure, speak to a SEBI registered investment adviser before you invest.",
     "We do not hold your money or shares, connect to your share account or place orders. You decide whether to buy or sell, and you place every order yourself.",
   ] },
   { h: "4. No promise of growth", p: ["We do not promise or guarantee any profit, return or protection from loss. Results from old prices are not real money results. Your result can be very different, and you can lose some or all of your money. Please read the Risks page."] },

@@ -2,6 +2,7 @@ import Link from "next/link";
 import JsonLd from "@/components/JsonLd";
 import { ORG_ID, breadcrumbs, graph, pageMeta, webPage } from "@/lib/seo";
 import { CONTACT_EMAIL } from "@/lib/payment";
+import { RESEARCH_LINE, RESEARCH_PATH } from "@/lib/research";
 
 const TITLE = "About AKNA Capital";
 const DESCRIPTION = "AKNA Capital makes ready-made share baskets that follow fixed rules, shows the risks openly, and leaves your shares in your own account.";
@@ -63,10 +64,8 @@ export default function About() {
       </div>
 
       <p className="mt-10 max-w-3xl border-t border-pline pt-4 text-[11px] leading-relaxed text-pmuted">
-        AKNA Capital is a technology company. We are not registered with SEBI as an investment adviser or research analyst, and this website is for
-        educational purposes only. Nothing here is investment advice or a recommendation to buy or sell any security. Growth figures come from testing on past
-        data and are not a promise of future returns. Investments in securities are subject to market risk, and you can lose money. Please
-        speak to a SEBI registered adviser before you invest.
+        {RESEARCH_LINE} <Link href={RESEARCH_PATH} className="underline">Research Analyst details</Link>. Nothing here is advice made for you personally. Growth figures come from testing on past
+        data and are not a promise of future returns. Investments in securities are subject to market risk, and you can lose money.
       </p>
     </div>
   );

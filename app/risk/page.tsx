@@ -25,7 +25,7 @@ const sections: LegalSection[] = [
     "You may get a different price from the one shown, or an order may not go through.",
     "Data, calculations or emails can be wrong, late or missing.",
   ] },
-  { h: "Before you invest", p: ["Think about your goals, time, income, debts and emergency money. We are not registered with SEBI as an investment adviser or research analyst, and we do not know your full situation. Speak to a SEBI registered adviser."] },
+  { h: "Before you invest", p: ["Think about your goals, time, income, debts and emergency money. We do not know your full situation, and nothing here is advice made for you personally. If you are not sure, speak to a SEBI registered investment adviser."] },
 ];
 
 export default function Risk() {

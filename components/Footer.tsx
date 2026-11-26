@@ -1,6 +1,7 @@
 import { DATA_AS_OF } from "@/lib/strategies";
 import Brand from "@/components/Brand";
 import { LEGAL_PAGES } from "@/components/LegalPage";
+import { RESEARCH_LINE, RESEARCH_PATH } from "@/lib/research";
 import { RETURNS_NOTE } from "@/lib/pricing";
 import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/payment";
@@ -48,11 +49,11 @@ export default function Footer() {
             <p className="mt-3 max-w-3xl leading-relaxed">
               All growth numbers come from testing each basket&apos;s rules on old prices (a back test). They do not promise future growth. The tests use the companies
               that are in each market list today, so past results look better than they would really have been (survivorship bias). Share prices carry market risk.
-              This is a technology demo, not a fund, PMS or investment adviser, and nothing here is investment advice.
+              Nothing here is advice made for you personally.
             </p>
           </details>
           <p className="mt-4 text-xs text-pmuted">
-            © 15Stocks by AKNA Capital. We are a technology company. We are not registered with SEBI as an investment adviser or research analyst. This site is only for learning and is not investment advice. {RETURNS_NOTE} Prices up to {DATA_AS_OF}.
+            © 15Stocks by AKNA Capital. {RESEARCH_LINE} <Link href={RESEARCH_PATH} className="underline hover:text-ptext">Details</Link>. {RETURNS_NOTE} Prices up to {DATA_AS_OF}.
           </p>
         </div>
       </div>

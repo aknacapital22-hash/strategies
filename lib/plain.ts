@@ -63,6 +63,7 @@ export const WORDS: [string, string][] = [
   ["List update (rebalance)", "On fixed dates the list is checked. Some shares may be sold and others bought."],
   ["Test on old prices (back test)", "We use the rules on old prices to see what would have happened. No real money was used."],
   ["Growth per year (CAGR)", "The steady yearly growth that would turn the first amount into the final amount. Real years are never this even."],
+  ["Sharpe ratio", "A score that compares the growth with the ups and downs. A higher number means more growth for the same ups and downs."],
   ["Biggest fall (drawdown)", "The largest drop from a high point. After a 25% fall, ₹1 lakh would be ₹75,000."],
   ["Does the start day matter? (rolling returns)", "The results for every possible starting day, not just one."],
 ];

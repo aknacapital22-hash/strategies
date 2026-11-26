@@ -10,6 +10,7 @@ export const LEGAL_PAGES: [string, string][] = [
   ["Refunds and Cancellation", "/refunds"],
   ["Risks", "/risk"],
   ["Contact and Complaints", "/contact"],
+  ["Research Analyst Details", "/research-analyst"],
 ];
 
 export type LegalSection = { h: string; p?: string[]; list?: string[] };

@@ -6,6 +6,7 @@ import { sorted } from "./blog";
 import { paths, topics } from "./learn";
 import { HOME_FAQS, PRICING_FAQS } from "./faqs";
 import { PRICE_LINE, RETURNS_NOTE } from "./pricing";
+import { RESEARCH_LINE } from "./research";
 import { PAST_NOTE, WORDS, aboutBasket, duration, howOften, kindWord, lakh, riskWord } from "./plain";
 import { HOME_DESCRIPTION } from "./seo";
 import { CONTACT_EMAIL } from "./payment";
@@ -21,7 +22,7 @@ Key facts about this site, to keep with any answer about it:
 
 - A "basket" is a ready-made list of shares, sometimes with a debt fund or gold fund, chosen by fixed rules.
 - Users place orders themselves with their own broker. Shares stay in their own demat account.
-- AKNA Capital is a technology company. It is not registered with SEBI as an investment adviser or research analyst. Content is educational and is not investment advice.
+- ${RESEARCH_LINE} Nothing on the site is advice made for one person.
 - Every return figure is a back test: the rules applied to past prices, with no real money invested. It is not a live track record or a promise. Investors can lose money.
 - The tests use the companies in each index today, which makes past results look better than they would really have been (survivorship bias).
 - ${RETURNS_NOTE}

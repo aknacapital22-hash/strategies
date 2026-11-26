@@ -9,6 +9,7 @@ import { engine } from "./engine";
 import { deliverMail, sendMail } from "./mail";
 import { noticeEmail } from "./noticeEmail";
 import { CONTACT_EMAIL } from "./payment";
+import { RESEARCH_PATH } from "./research";
 import { SITE_URL } from "./site";
 import strategies from "./strategies.json";
 
@@ -41,7 +42,7 @@ export function composeNotice(name: string, items: { slug: string; signal: strin
     change: engine[slug].changes.find((c) => c.signal === signal) ?? null,
     url: `${siteUrl()}/strategies/${slug}#rebalance`,
   }));
-  return noticeEmail(name, baskets, CONTACT_EMAIL);
+  return noticeEmail(name, baskets, CONTACT_EMAIL, `${siteUrl()}${RESEARCH_PATH}`);
 }
 
 type Signal = { slug: string; signal: string };

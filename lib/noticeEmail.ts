@@ -18,6 +18,8 @@ const NOTE =
   "The amount for a share can change even if it stays in the list, so compare the full list with what you own. We do not buy or sell for you. You decide and place any orders yourself.";
 const RISK = "This list follows fixed rules and does not promise growth. Share prices can fall and you can lose money.";
 const WHY = "You are getting this because you have a paid plan on 15Stocks. We send it once for each list update.";
+// the same words as RESEARCH_LINE in lib/research.ts
+const RESEARCH = "AKNA Capital is a technology company. Research is provided by a SEBI-registered Research Analyst.";
 
 /** "ASHA RAVI KUMAR" reads as shouting: greet by first name, and fix the capitals only when there are none or only capitals. */
 export function firstName(name: string): string {
@@ -62,7 +64,7 @@ ${body}
 </td></tr>`;
 }
 
-export function noticeEmail(name: string, baskets: NoticeBasket[], contact: string): { subject: string; text: string; html: string } {
+export function noticeEmail(name: string, baskets: NoticeBasket[], contact: string, detailsUrl = ""): { subject: string; text: string; html: string } {
   const many = baskets.length > 1;
   const subject = many ? `List update: ${baskets.length} of your baskets` : `List update: ${baskets[0].name}`;
   const hello = `Hello ${firstName(name)},`;
@@ -83,6 +85,7 @@ ${INTRO(many)}`,
     }),
     NOTE,
     RISK,
+    detailsUrl ? `${RESEARCH}\nDetails: ${detailsUrl}` : RESEARCH,
     `${WHY}\nQuestions? ${contact}`,
   ].join("\n\n----------\n\n");
 
@@ -108,6 +111,7 @@ ${baskets.map(card).join("\n")}
 </td></tr>
 <tr><td style="padding:16px 24px 22px;border-top:1px solid ${LINE};font-size:12px;line-height:18px;color:${MUTED};${FONT}">
 <p style="margin:0 0 8px;">${RISK}</p>
+<p style="margin:0 0 8px;">${RESEARCH}${detailsUrl ? ` <a href="${esc(detailsUrl)}" style="color:${TEAL};">Details</a>` : ""}</p>
 <p style="margin:0;">${WHY} Questions? <a href="mailto:${esc(contact)}" style="color:${TEAL};">${esc(contact)}</a></p>
 </td></tr>
 </table>

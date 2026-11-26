@@ -1,7 +1,8 @@
 # Rebalances the strategies automatically.
 # After the Indian market closes: download prices, run the engine, rebuild every figure the website shows, check it
-# all, and test that the website still builds. When a basket has a new signal, commit the data (Netlify and Render
-# redeploy from it), then ask the backend to email subscribers. If anything fails, the admins are emailed.
+# all, and test that the website still builds. A new list is held until the Research Analyst approves it (run the
+# workflow with the code from the run summary). Only then is the data committed (Netlify and Render redeploy from
+# it) and subscribers emailed. If anything fails, the admins are emailed.
 #
 # Repository settings > Secrets and variables > Actions:
 #   secret   CRON_SECRET   the same value as CRON_SECRET on Render
@@ -14,6 +15,10 @@ on:
     - cron: "30 15 * * 1-5" # 21:00 IST: second try, and any emails still to send
   workflow_dispatch:
     inputs:
+      approval_code:
+        description: "Code of the list the Research Analyst approved (from the earlier run summary)"
+        type: string
+        default: ""
       reviewed:
         description: "I reviewed a blocked run: accept an unusually large change or price revision"
         type: boolean
@@ -68,21 +73,28 @@ jobs:
           if [ "$REVIEWED" = "true" ]; then flag="--allow-large-swap"; fi
           python engine/validate.py "$RUNNER_TEMP/previous.json" $flag >> "$GITHUB_OUTPUT"
 
+      # A new list goes out only with the Research Analyst's approval of that exact list. Scheduled runs have no code.
+      - name: Research Analyst approval
+        id: approval
+        env:
+          APPROVAL_CODE: ${{ inputs.approval_code }}
+        run: python engine/approval.py "$RUNNER_TEMP/previous.json" --code "$APPROVAL_CODE" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.publish == 'true'
+        if: steps.check.outputs.publish == 'true' && steps.approval.outputs.approved == 'true'
         with:
           node-version: "22"
           cache: npm
 
       - name: Make sure the website still builds with the new data
-        if: steps.check.outputs.publish == 'true'
+        if: steps.check.outputs.publish == 'true' && steps.approval.outputs.approved == 'true'
         run: |
           npm ci --include=dev
           npm run build
           git checkout -- tsconfig.json # the build may rewrite it, and the next step needs a clean tree
 
       - name: Publish the new portfolios and figures
-        if: steps.check.outputs.publish == 'true'
+        if: steps.check.outputs.publish == 'true' && steps.approval.outputs.approved == 'true'
         run: |
           git config user.name "rebalance-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -91,8 +103,8 @@ jobs:
           git pull --rebase origin main
           git push origin HEAD:main
 
-      - name: Keep the published files when nothing is new
-        if: steps.check.outputs.publish != 'true'
+      - name: Keep the published files when nothing is new or approval is missing
+        if: steps.check.outputs.publish != 'true' || steps.approval.outputs.approved != 'true'
         run: git checkout -- engine/out/results.json lib/strategies.json
 
       - name: Email subscribers
@@ -100,6 +112,13 @@ jobs:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           BACKEND_URL: ${{ vars.BACKEND_URL }}
         run: python engine/notify.py
+
+      # Failing the run is what alerts people: the admins are emailed below, and GitHub shows the run as needing attention.
+      - name: Waiting for approval
+        if: steps.check.outputs.publish == 'true' && steps.approval.outputs.approved != 'true'
+        run: |
+          echo "::error::A new list is waiting for Research Analyst approval. Nothing was published. Open the run summary for the list and its code."
+          exit 1
 
       - name: Tell the admins if anything failed
         if: failure()
