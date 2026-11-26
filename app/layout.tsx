@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Outfit, Stack_Sans_Headline, Figtree, Geist } from "next/font/google";
+import { Plus_Jakarta_Sans, Outfit } from "next/font/google";
 import "./globals.css";
 import "./art.css";
 import Spotlight from "@/components/Spotlight";
@@ -9,33 +9,31 @@ import { Suspense, ViewTransition } from "react";
 import { AuthNav, AuthNavMobile } from "@/components/AuthNav";
 import JsonLd from "@/components/JsonLd";
 import { SITE_NAME, SITE_URL, INDEXABLE, abs } from "@/lib/site";
+import { HOME_DESCRIPTION, HOME_TITLE, ORG_ID, SITE_ID } from "@/lib/seo";
+import { CONTACT_EMAIL } from "@/lib/payment";
 
-// Same families as koshpal.com: Plus Jakarta Sans for text, Outfit for headings and labels,
-// Stack Sans Headline for display accents, Figtree and Geist as utilities. Self-hosted by next/font.
+// Same families as koshpal.com: Plus Jakarta Sans for text, Outfit for headings and labels. Self-hosted by next/font.
+// Only load a family the styles use: each one is another download on a first visit.
 const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], display: "swap" });
 const outfit = Outfit({ variable: "--font-outfit", subsets: ["latin"], display: "swap" });
-const stack = Stack_Sans_Headline({ variable: "--font-stack", subsets: ["latin"], display: "swap" });
-const figtree = Figtree({ variable: "--font-figtree", subsets: ["latin"], display: "swap" });
-const geist = Geist({ variable: "--font-geist", subsets: ["latin"], display: "swap" });
-const fontVars = [jakarta, outfit, stack, figtree, geist].map((f) => f.variable).join(" ");
-
-const DESCRIPTION =
-  "Systematic investing for wealth creation. Research index strategies and approve rebalances in your own demat.";
+const fontVars = [jakarta, outfit].map((f) => f.variable).join(" ");
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: "15Stocks by AKNA Capital | Systematic investing for wealth creation", template: "%s | 15Stocks by AKNA Capital" },
-  description: DESCRIPTION,
+  title: { default: HOME_TITLE, template: "%s | 15Stocks" },
+  description: HOME_DESCRIPTION,
   applicationName: SITE_NAME,
   alternates: { canonical: "./" },
-  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: "15Stocks by AKNA Capital | Systematic investing for wealth creation", description: DESCRIPTION, url: "/" },
-  twitter: { card: "summary_large_image", title: "15Stocks by AKNA Capital | Systematic investing for wealth creation", description: DESCRIPTION },
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: HOME_TITLE, description: HOME_DESCRIPTION, url: "/" },
+  twitter: { card: "summary_large_image", title: HOME_TITLE, description: HOME_DESCRIPTION },
+  // Google Search Console ownership check: set GOOGLE_SITE_VERIFICATION to the code it gives you.
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION },
   // Indexable only when NEXT_PUBLIC_SITE_URL is set (production); dev and previews stay out of search.
   robots: INDEXABLE ? { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } } : { index: false, follow: false },
 };
 
 // Runs before paint so the saved / system theme never flashes the wrong colours.
-const themeScript = `document.documentElement.classList.add("js");try{var t=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}`;
+const themeScript = `document.documentElement.classList.add("js");if(/(?:^|; )akna_hint=/.test(document.cookie))document.documentElement.classList.add("signed-in");try{var t=localStorage.getItem("theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -45,8 +43,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <JsonLd data={{
           "@context": "https://schema.org",
           "@graph": [
-            { "@type": "Organization", "@id": abs("/#org"), name: SITE_NAME, url: abs("/"), logo: abs("/logo.png") },
-            { "@type": "WebSite", "@id": abs("/#site"), url: abs("/"), name: SITE_NAME, publisher: { "@id": abs("/#org") }, inLanguage: "en-IN" },
+            {
+              "@type": "Organization", "@id": ORG_ID, name: SITE_NAME, alternateName: ["15Stocks", "AKNA Capital"], url: abs("/"), logo: abs("/logo.png"),
+              description: HOME_DESCRIPTION, areaServed: "IN",
+              contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: CONTACT_EMAIL },
+            },
+            { "@type": "WebSite", "@id": SITE_ID, url: abs("/"), name: SITE_NAME, alternateName: "15Stocks", description: HOME_DESCRIPTION, publisher: { "@id": ORG_ID }, inLanguage: "en-IN" },
           ],
         }} />
       </head>
@@ -57,8 +59,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Header reads the pathname (a client hook), which needs a Suspense boundary on routes with dynamic params. */}
         <Suspense fallback={<div className="sticky top-0 z-50 h-[68px] border-b border-transparent bg-page/70" aria-hidden />}>
           <Header
-            auth={<Suspense fallback={<span className="hidden w-24 sm:block" aria-hidden />}><AuthNav /></Suspense>}
-            authMobile={<Suspense fallback={null}><AuthNavMobile /></Suspense>}
+            auth={<AuthNav />}
+            authMobile={<AuthNavMobile />}
           />
         </Suspense>
         <div className="scroll-thread" aria-hidden />

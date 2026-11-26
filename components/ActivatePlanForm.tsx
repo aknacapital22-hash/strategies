@@ -14,10 +14,13 @@ function Submit() {
 }
 
 /** Admin: switch a plan on for one user. A request already waiting fills in the form. */
-export default function ActivatePlanForm({ action, user, q, baskets, waiting }: {
+export default function ActivatePlanForm({ action, user, q, baskets, waiting, tab, label = "Activate plan" }: {
   action: (fd: FormData) => Promise<void>;
   user: { id: string; name: string };
   q: string;
+  /** The admin tab to come back to. */
+  tab: "subscribers" | "others";
+  label?: string;
   baskets: { slug: string; name: string }[];
   waiting: Waiting[];
 }) {
@@ -36,7 +39,7 @@ export default function ActivatePlanForm({ action, user, q, baskets, waiting }: 
       setAmount(String(w.amount));
       return;
     }
-    // All Access has its own plan, so the plan and price follow the choice
+    // the plan and price follow the choice
     const fits = planFits(next, plan) ? plan : next === ALL_ACCESS ? "all" : "year";
     setPlan(fits);
     if (request || fits !== plan) setAmount(String(PLANS[fits].price));
@@ -49,7 +52,7 @@ export default function ActivatePlanForm({ action, user, q, baskets, waiting }: 
 
   return (
     <details>
-      <summary className="btn btn-ghost !min-h-0 !py-1.5 text-xs" aria-label={`Activate a plan for ${user.name}`}>Activate plan</summary>
+      <summary className="btn btn-ghost !min-h-0 !py-1.5 text-xs" aria-label={`${label} for ${user.name}`}>{label}</summary>
       <form
         action={action}
         className="mt-3 grid w-64 gap-2"
@@ -60,6 +63,7 @@ export default function ActivatePlanForm({ action, user, q, baskets, waiting }: 
       >
         <input type="hidden" name="userId" value={user.id} />
         <input type="hidden" name="q" value={q} />
+        <input type="hidden" name="tab" value={tab} />
         <label className="grid gap-1 text-xs text-pmuted">Basket
           <select name="slug" required value={slug} onChange={(e) => pickBasket(e.target.value)} className={field}>
             <option value="" disabled>Choose a basket</option>

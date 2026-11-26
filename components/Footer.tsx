@@ -1,12 +1,13 @@
 import { DATA_AS_OF } from "@/lib/strategies";
 import Brand from "@/components/Brand";
+import { LEGAL_PAGES } from "@/components/LegalPage";
 import { RETURNS_NOTE } from "@/lib/pricing";
 import Link from "next/link";
 import { CONTACT_EMAIL } from "@/lib/payment";
 
 const cols = [
-  { h: "Product", l: [["Product tour", "/product"], ["All strategies", "/strategies"], ["My baskets", "/portfolios"], ["Pricing", "/pricing"]] },
-  { h: "Learn", l: [["Learn hub", "/learn"], ["Blog", "/blog"], ["Index finder", "/start"]] },
+  { h: "Product", l: [["How it works", "/product"], ["All baskets", "/strategies"], ["My baskets", "/portfolios"], ["Pricing", "/pricing"]] },
+  { h: "Learn", l: [["Learn hub", "/learn"], ["Blog", "/blog"], ["See what suits you", "/start"]] },
   { h: "Company", l: [["About", "/about"], ["Log in", "/login"]] },
 ];
 
@@ -20,7 +21,7 @@ export default function Footer() {
           </Link>
           <p className="mt-4 max-w-xs text-sm text-pmuted">
             <span className="block font-semibold text-ptext">Systematic investing for wealth creation.</span>
-            <span className="mt-1 block">Research index strategies and approve rebalances in your own demat.</span>
+            <span className="mt-1 block">Ready-made share baskets that follow fixed rules. You buy in your own account.</span>
           </p>
           <p className="mt-3 text-sm"><a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-aink hover:underline">{CONTACT_EMAIL}</a></p>
         </div>
@@ -37,18 +38,21 @@ export default function Footer() {
       </div>
       <div className="border-t border-pline">
         <div className="wrap py-6">
+          <nav aria-label="Policies" className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-pmuted">
+            {LEGAL_PAGES.map(([label, href]) => <Link key={href} href={href} className="hover:text-ptext hover:underline">{label}</Link>)}
+          </nav>
           <details className="text-xs text-pmuted">
             <summary className="flex w-fit items-center gap-2 font-medium text-ptext">
               Important disclosures <span className="plus inline-block transition-transform" aria-hidden>+</span>
             </summary>
             <p className="mt-3 max-w-3xl leading-relaxed">
-              All returns shown are model, back tested figures and are not a promise of future returns. Back tests use
-              current index members and flatter the past (survivorship bias). Investments in securities are subject to
-              market risk. This is a technology demo, not a fund, PMS or investment adviser, and nothing here is investment advice.
+              All growth numbers come from testing each basket&apos;s rules on old prices (a back test). They do not promise future growth. The tests use the companies
+              that are in each market list today, so past results look better than they would really have been (survivorship bias). Share prices carry market risk.
+              This is a technology demo, not a fund, PMS or investment adviser, and nothing here is investment advice.
             </p>
           </details>
           <p className="mt-4 text-xs text-pmuted">
-            © 15Stocks by AKNA Capital. We are a technology company and are not registered with SEBI as an investment adviser or research analyst. Content is for educational purposes only and is not investment advice. Strategy figures are model, back tested numbers ({DATA_AS_OF}). {RETURNS_NOTE}
+            © 15Stocks by AKNA Capital. We are a technology company. We are not registered with SEBI as an investment adviser or research analyst. This site is only for learning and is not investment advice. {RETURNS_NOTE} Prices up to {DATA_AS_OF}.
           </p>
         </div>
       </div>

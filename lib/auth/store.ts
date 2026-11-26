@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import strategies from "../strategies.json";
-import { ALL_ACCESS, PLANS, planFits, type PlanId } from "../pricing";
+import { PLANS, planFits, type PlanId } from "../pricing";
 import { query, transaction, uniqueViolation } from "../db";
 import { callBackend, usesRemoteBackend } from "../backend";
 
@@ -17,8 +17,8 @@ export type SubRequest = {
 };
 
 export const SLUGS = new Set((strategies as { slug: string }[]).map((s) => s.slug));
-/** What can be subscribed to: one basket, or All Access. */
-const isProduct = (slug: string) => SLUGS.has(slug) || slug === ALL_ACCESS;
+/** What can be subscribed to: one basket. All baskets together is no longer sold (nobody had bought it). */
+const isProduct = (slug: string) => SLUGS.has(slug);
 
 /** Demo accounts (the login page shows them while the demo mode is on). Created by `npm run db:migrate -- --import`. */
 export const DEMO = {

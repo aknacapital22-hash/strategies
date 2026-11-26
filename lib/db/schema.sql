@@ -26,7 +26,7 @@ create table if not exists requests (
   id         uuid primary key,
   user_id    uuid not null references users (id) on delete cascade,
   slug       text not null,
-  plan       text not null check (plan in ('quarter', 'year')),
+  plan       text not null check (plan in ('month', 'quarter', 'year')),
   amount     integer not null check (amount >= 0),
   status     text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   utr        text,
@@ -43,7 +43,7 @@ create index if not exists requests_created on requests (created desc);
 
 -- All Access (every basket) is its own plan, sold only under the name all-access.
 alter table requests drop constraint if exists requests_plan_check;
-alter table requests add constraint requests_plan_check check (plan in ('quarter', 'year', 'all') and (plan = 'all') = (slug = 'all-access'));
+alter table requests add constraint requests_plan_check check (plan in ('month', 'quarter', 'year', 'all') and (plan = 'all') = (slug = 'all-access'));
 
 -- Single-use password reset links (only a hash of the token is stored).
 create table if not exists password_resets (

@@ -12,9 +12,11 @@ const RENAMED: Record<string, string> = { "focused-largecap-20": "focused-largec
 
 export function proxy(req: NextRequest) {
   // /account needs a session: bounce visitors without a session cookie straight to login (the page verifies it fully).
-  if (["/account", "/admin"].includes(req.nextUrl.pathname) && !req.cookies.get("akna_session")) {
+  if (["/account", "/admin"].includes(req.nextUrl.pathname) && !req.cookies.get("akna_sid")) {
     return NextResponse.redirect(new URL(`/login?next=${req.nextUrl.pathname}`, req.url));
   }
+  // No longer sold. Done here too, because some hosts run this before the redirects in next.config.ts.
+  if (req.nextUrl.pathname === "/subscribe/all-access") return NextResponse.redirect(new URL("/pricing", req.url), 307);
   if (req.nextUrl.pathname.startsWith("/blog/")) {
     const post = req.nextUrl.pathname.split("/")[2];
     return post && !POSTS.has(post) ? NextResponse.rewrite(new URL("/__not-found", req.url), { status: 404 }) : NextResponse.next();
@@ -30,4 +32,4 @@ export function proxy(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/strategies/:slug", "/blog/:slug", "/account", "/admin"] };
+export const config = { matcher: ["/strategies/:slug", "/blog/:slug", "/account", "/admin", "/subscribe/all-access"] };

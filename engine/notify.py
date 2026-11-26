@@ -47,17 +47,22 @@ def main():
     results = json.load(open(os.path.join(HERE, "out", "results.json"), encoding="utf8"))
     body = json.dumps({"signals": {slug: r["schedule"]["lastSignal"] for slug, r in results.items()}}).encode()
 
-    deadline, sent = time.time() + WAIT_SECONDS, 0
+    deadline, sent, unconfirmed = time.time() + WAIT_SECONDS, 0, 0
     while True:
         status, reply = call(f"{base}/api/rebalance-notify", key, body)
         if status == 200:
             sent += reply["sent"]
-            print(f"sent {reply['sent']}, failed {reply['failed']}, remaining {reply['remaining']}")
+            unsure = reply.get("unconfirmed", 0)
+            unconfirmed += unsure
+            print(f"sent {reply['sent']}, failed {reply['failed']}, unconfirmed {unsure}, remaining {reply['remaining']}")
             if reply["limitReached"]:
                 sys.exit(f"Daily email limit reached after {sent}. The rest will be tried on the next run.")
             if reply["failed"]:
                 sys.exit(f"{reply['failed']} emails failed. They will be tried again on the next run.")
-            if reply["remaining"] == 0 or reply["sent"] == 0:
+            if reply["remaining"] == 0 or reply["sent"] + unsure == 0:
+                if unconfirmed:
+                    sys.exit(f"{sent} emails sent. For {unconfirmed} more, the mail service did not confirm. They are NOT sent again, "
+                             "so nobody gets a repeat: check the Brevo log to see whether they arrived.")
                 print(f"done: {sent} emails sent")
                 return
         elif status in (400, 401, 503):

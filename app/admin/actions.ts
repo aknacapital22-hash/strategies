@@ -35,7 +35,8 @@ export async function activateSubscription(fd: FormData) {
   const plan = str(fd, "plan");
   const result = isPlan(plan) ? await activatePlan(userId, slug, plan, a.id, str(fd, "amount").trim(), str(fd, "utr").trim() || undefined) : "invalid";
   revalidatePath("/", "layout");
-  const next = new URLSearchParams({ tab: "others", result, user: userId, basket: slug });
+  const tab = str(fd, "tab") === "subscribers" ? "subscribers" : "others"; // only ever one of the two
+  const next = new URLSearchParams({ tab, result, user: userId, basket: slug });
   const q = str(fd, "q").slice(0, 60);
   if (q) next.set("q", q);
   redirect(`/admin?${next}`);

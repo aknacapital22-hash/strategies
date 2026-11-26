@@ -1,14 +1,15 @@
 import Link from "next/link";
-import type { Metadata } from "next";
+import { breadcrumbs, graph, pageMeta } from "@/lib/seo";
 import JsonLd from "@/components/JsonLd";
+import Words from "@/components/Words";
 import { sorted, readingMinutes, fmtDate } from "@/lib/blog";
 import { SITE_NAME, abs } from "@/lib/site";
 
-export const metadata: Metadata = {
-  title: "Blog: quant investing, risk and strategy explainers",
+export const metadata = pageMeta({
+  title: "Investing Blog: Quant, Back Tests and Risk",
   description: "Plain-English articles on quant investing, back tests, drawdowns, CAGR, momentum and rebalancing for Indian investors.",
-  alternates: { canonical: "/blog" },
-};
+  path: "/blog",
+});
 
 export default function Blog() {
   const list = sorted();
@@ -18,9 +19,11 @@ export default function Blog() {
         "@context": "https://schema.org", "@type": "Blog", name: `${SITE_NAME} Blog`, url: abs("/blog"),
         blogPost: list.map((p) => ({ "@type": "BlogPosting", headline: p.title, url: abs(`/blog/${p.slug}`), datePublished: p.date })),
       }} />
+      <JsonLd data={graph(breadcrumbs(["Blog", "/blog"]))} />
       <p className="eyebrow">Blog</p>
-      <h1 className="h1 mt-4 max-w-3xl !text-[clamp(1.75rem,3.4vw,2.5rem)]">Quant investing, explained plainly</h1>
-      <p className="lead mt-4 max-w-3xl">Short guides on how systematic strategies work and how to judge them. Educational only, not investment advice.</p>
+      <h1 className="h1 mt-4 max-w-3xl !text-[clamp(1.75rem,3.4vw,2.5rem)]">Articles on investing</h1>
+      <p className="lead mt-4 max-w-3xl">Guides on investing with fixed rules and how to judge it. Some go into detail. Educational only, not investment advice.</p>
+      <Words className="mt-6" />
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {list.map((p) => (
           <Link key={p.slug} href={`/blog/${p.slug}`} className="card card-link flex flex-col p-6">

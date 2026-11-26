@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { getUser } from "@/lib/auth/session";
 import { getRequest, requestsFor } from "@/lib/auth/store";
 import { strategies } from "@/lib/strategies";
-import { ALL_ACCESS, PLANS, dateIN, inr } from "@/lib/pricing";
+import { PLANS, dateIN, inr } from "@/lib/pricing";
 import { PAYEE_NAME, UPI_ID, CONTACT_EMAIL, WHATSAPP_DISPLAY, shortId, upiLink, whatsappLink } from "@/lib/payment";
 import CopyButton from "@/components/CopyButton";
 import UtrForm from "@/components/UtrForm";
@@ -15,11 +15,10 @@ export const metadata = { title: "Complete your payment", robots: { index: false
 async function Inner({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ r?: string }> }) {
   const { slug } = await params;
   const { r } = await searchParams;
-  // what is being paid for: one basket, or All Access
-  const s = slug === ALL_ACCESS ? { name: "All Access (every basket)" } : strategies.find((x) => x.slug === slug);
+  const s = strategies.find((x) => x.slug === slug);
   if (!s) notFound();
-  const details = slug === ALL_ACCESS ? "/pricing" : `/strategies/${slug}`;
-  const opened = slug === ALL_ACCESS ? { href: "/portfolios", label: "See your baskets" } : { href: `/strategies/${slug}#holdings`, label: `See ${s.name} holdings` };
+  const details = `/strategies/${slug}`;
+  const opened = { href: `/strategies/${slug}#holdings`, label: `See ${s.name} holdings` };
   const user = await getUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/subscribe/${slug}`)}`);
 

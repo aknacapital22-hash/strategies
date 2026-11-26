@@ -67,39 +67,39 @@ export default function Rebalance({ basket, asOf, targets, minimum, minimumAmoun
 
   return (
     <div id="rebalance" className="card scroll-mt-32 p-6 md:p-8">
-      <p className="eyebrow">Rebalance calculator</p>
+      <p className="eyebrow">Buy and sell calculator</p>
       <h3 className="mt-3 text-2xl font-bold">How many shares of each?</h3>
       <p className="mt-2 max-w-2xl text-pmuted">
-        Enter the total you want in {basket} and, if you already hold some of it, your current shares. You get exact buy and sell quantities to enter in
-        your broker. Minimum investment: <b>{minimum}</b>.
+        Type how much you want to put in {basket}. Already own some of these shares? Add them too. We tell you how many to buy or sell. You place the orders in
+        your share app. Start with <b>{minimum}</b>.
       </p>
 
       <div className="mt-6 rounded-xl border border-pline p-4 text-sm" data-changes>
         <p className="font-semibold">What changed in the basket</p>
         {!change ? (
           <p className="mt-1 text-pmuted">
-            This is your first look at {basket}, so every stock below is new to you. Enter what you hold and you get your buys and sells. After you place the orders, press
+            This is your first look at {basket}, so every share below is new to you. Enter what you hold and you get your buys and sells. After you place the orders, press
             “I have done this rebalance” and next time we will list exactly what was added, removed or re-weighted.
           </p>
         ) : change.same ? (
-          <p className="mt-1 text-pmuted">No change since you last confirmed (signal {seen?.asOf}). Nothing new to do unless you hold different shares.</p>
+          <p className="mt-1 text-pmuted">No change since you last confirmed (list of {seen?.asOf}). Nothing new to do unless you hold different shares.</p>
         ) : (
           <div className="mt-2 space-y-2">
-            <p className="text-pmuted">Compared with the basket you confirmed on signal {seen?.asOf}. Now: signal {asOf}.</p>
+            <p className="text-pmuted">Compared with the list of {seen?.asOf} that you confirmed. This is the list of {asOf}.</p>
             {change.removed.length > 0 && <p><span className="down font-semibold">▼ Dropped ({change.removed.length}):</span> {change.removed.join(", ")} <span className="text-pmuted">(sell if you hold them)</span></p>}
             {change.added.length > 0 && <p><span className="up font-semibold">▲ Added ({change.added.length}):</span> {change.added.map((t) => `${t.symbol} ${t.weight.toFixed(1)}%`).join(", ")}</p>}
-            {change.moved.length > 0 && <p><span className="font-semibold">↕ Weight changed ({change.moved.length}):</span> {change.moved.map((t) => `${t.symbol} ${(seen as NonNullable<typeof seen>).w[t.symbol].toFixed(1)}% → ${t.weight.toFixed(1)}%`).join(", ")}</p>}
+            {change.moved.length > 0 && <p><span className="font-semibold">↕ Amount changed ({change.moved.length}):</span> {change.moved.map((t) => `${t.symbol} ${(seen as NonNullable<typeof seen>).w[t.symbol].toFixed(1)}% → ${t.weight.toFixed(1)}%`).join(", ")}</p>}
           </div>
         )}
       </div>
 
       <div className="mt-6 grid gap-5 md:grid-cols-2">
         <div>
-          <label htmlFor="rb-capital" className="text-sm font-medium">Total amount for this basket (₹)</label>
+          <label htmlFor="rb-capital" className="text-sm font-medium">Your total money for this basket (₹)</label>
           <input id="rb-capital" inputMode="numeric" value={capital} onChange={(e) => setCapital(e.target.value.replace(/[^\d,]/g, ""))} placeholder="e.g. 500000" className={`num ${field}`} />
           <p className="mt-1 text-xs text-pmuted">Include what you already hold in this basket.</p>
 
-          <label htmlFor="rb-buffer" className="mt-4 block text-sm font-medium">Keep aside for charges and price moves</label>
+          <label htmlFor="rb-buffer" className="mt-4 block text-sm font-medium">Keep some aside for charges and price changes</label>
           <select id="rb-buffer" value={buffer} onChange={(e) => setBuffer(Number(e.target.value))} className={field}>
             {[0, 1, 2, 3, 5].map((b) => <option key={b} value={b}>{b === 0 ? "Nothing" : `${b}% of the amount`}</option>)}
           </select>
@@ -127,7 +127,7 @@ export default function Rebalance({ basket, asOf, targets, minimum, minimumAmoun
           )}
           {res.minCapital !== null && cap < res.minCapital && (
             <p role="note" className="mb-5 rounded-xl bg-[var(--loss-ink)]/10 p-4 text-sm">
-              {inr(cap)} is too small to hold at least one share of every stock. You would need about <b>{inr(Math.ceil(res.minCapital))}</b>. Lines marked
+              {inr(cap)} is too small to buy at least one of every holding. You would need about <b>{inr(Math.ceil(res.minCapital))}</b>. Lines marked
               “too small” get no shares.
             </p>
           )}
@@ -154,7 +154,7 @@ export default function Rebalance({ basket, asOf, targets, minimum, minimumAmoun
               ["To buy", inr(res.buyValue)],
               ["To sell", inr(res.sellValue)],
               ["Orders to place", String(trades.length)],
-              ["Cash left over", inr(res.cash)],
+              ["Money left over", inr(res.cash)],
             ].map(([k, v]) => (
               <div key={k} className="rounded-xl border border-pline p-4"><dt className="text-xs text-pmuted">{k}</dt><dd className="num mt-1 text-lg font-bold">{v}</dd></div>
             ))}
@@ -167,10 +167,10 @@ export default function Rebalance({ basket, asOf, targets, minimum, minimumAmoun
                 <tr className="border-b border-pline text-xs uppercase tracking-wide text-pmuted">
                   <th scope="col" className="p-3 font-medium">Done</th>
                   <th scope="col" className="p-3 font-medium">Action</th>
-                  <th scope="col" className="p-3 font-medium">Stock</th>
+                  <th scope="col" className="p-3 font-medium">Share</th>
                   <th scope="col" className="p-3 text-right font-medium">Quantity</th>
                   <th scope="col" className="p-3 text-right font-medium">You hold</th>
-                  <th scope="col" className="p-3 text-right font-medium">Target</th>
+                  <th scope="col" className="p-3 text-right font-medium">Should hold</th>
                   <th scope="col" className="p-3 text-right font-medium">Est. price</th>
                   <th scope="col" className="p-3 text-right font-medium">Est. value</th>
                 </tr>
@@ -200,12 +200,12 @@ export default function Rebalance({ basket, asOf, targets, minimum, minimumAmoun
             <button type="button" className="btn btn-primary" onClick={copy} disabled={trades.length === 0}>{copied ? "Copied ✓" : "Copy order list"}</button>
             <button type="button" className="btn btn-ghost" onClick={downloadKite} disabled={trades.length === 0}>Download Zerodha basket (JSON)</button>
             <button type="button" className="btn btn-ghost" onClick={download} disabled={trades.length === 0}>Download CSV</button>
-            <button type="button" className="btn btn-ghost" onClick={useTargetAsHeld}>Use the target as my holdings</button>
+            <button type="button" className="btn btn-ghost" onClick={useTargetAsHeld}>Copy &quot;should hold&quot; into my shares</button>
             <span className="text-xs text-pmuted">{done.size > 0 && trades.length > 0 ? `${Math.min(done.size, trades.length)} of ${trades.length} done · ` : ""}{trades.length} order{trades.length === 1 ? "" : "s"} · sells first, then buys</span>
           </div>
 
           <div className="mt-5 rounded-xl border border-pline p-4 text-sm">
-            <p className="text-pmuted">After your orders are filled, confirm so we remember this basket and show you only the changes next time. “Use the target as my holdings” fills the box above with what you should now own.</p>
+            <p className="text-pmuted">After your orders are filled, confirm so we remember this basket and show you only the changes next time. “Copy &quot;should hold&quot; into my shares” fills the box above with what you should now own.</p>
             <button type="button" className="btn btn-primary mt-3 !min-h-0 !py-2" onClick={confirmBasket}>{acked ? "Saved ✓" : "I have done this rebalance"}</button>
           </div>
 

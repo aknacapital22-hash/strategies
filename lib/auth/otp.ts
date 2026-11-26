@@ -22,6 +22,18 @@ const newCode = () => String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 // A six digit code is short, so it is stored with a slow, salted hash.
 const hashCode = (code: string, salt: string) => crypto.scryptSync(code, salt, 32).toString("hex");
 
+// ---------------------------------------------------------------- housekeeping
+
+/**
+ * Deletes rows that are no longer used, to stay within a small database. Accounts, plans and payment requests are
+ * never touched. A rebalance notice only matters for the few days its signal counts as news.
+ */
+async function prune() {
+  await query("delete from email_codes where expires <= now()");
+  await query("delete from rate_limits where reset_at <= now()");
+  await query("delete from rebalance_notices where signal < current_date - 90");
+}
+
 // ---------------------------------------------------------------- counters
 
 /** Counts one more event under this key, in a window that starts with the first one. */
@@ -50,6 +62,7 @@ const underDailyLimit = async () => (await hit("send:day", 86400)).n <= DAILY_EM
 /** Counts a log-in attempt before the password is checked. Returns the minutes to wait, or 0 to go ahead. */
 export async function loginAttempt(email: string, visitor: string): Promise<number> {
   if (usesRemoteBackend()) return callBackend("loginAttempt", [email, visitor]);
+  if (crypto.randomInt(20) === 0) await prune(); // log-in attempts add rows too, so tidy up now and then
   // 5 for one email from one address, 100 from one address, and 30 for one email from everywhere, per 10 minutes.
   const counts = [
     [await hit(`login:pair:${visitor}|${email}`, 600), 5],
@@ -86,8 +99,7 @@ async function deliver(purpose: Purpose, email: string, code: string): Promise<b
 
 async function saveCode(ticket: string, purpose: Purpose, email: string, data: object): Promise<string> {
   const code = newCode(), salt = crypto.randomBytes(16).toString("hex");
-  await query("delete from email_codes where expires <= now()");
-  await query("delete from rate_limits where reset_at <= now()");
+  await prune();
   await query(
     `insert into email_codes (ticket_hash, purpose, email, salt, code_hash, data, expires)
      values ($1, $2, $3, $4, $5, $6, now() + make_interval(mins => $7))`,

@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import type { Strategy } from "@/lib/strategies";
 import { growthSeries } from "@/lib/growth";
+import { lakh } from "@/lib/plain";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -35,26 +36,26 @@ export default function Curve({ s }: { s: Pick<Strategy, "name" | "slug" | "grow
     setHov(Math.max(0, Math.min(vals.length - 1, Math.round(((px - PL) / (W - PL - PR)) * (vals.length - 1)))));
   };
   const cur = hov ?? vals.length - 1;
-  const gain = vals[cur] / 100 - 1;
+  // The chart steps month by month. At the end, show the exact figures used everywhere else on the site.
+  const atEnd = cur === vals.length - 1;
+  const value = atEnd && s.growth ? s.growth.model : vals[cur];
+  const bmValue = atEnd ? s.benchmark.growth : bm[cur];
 
   return (
     <figure className="card p-5 md:p-7">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs text-pmuted">{label(cur)}</p>
-          <p className="num text-3xl font-bold">₹{vals[cur].toFixed(0)} <span className="text-sm font-medium text-pmuted">from ₹100</span></p>
-          <p className="num mt-1 text-sm text-pmuted">{s.benchmark.name}: ₹{bm[cur].toFixed(0)}</p>
+          <p className="num text-3xl font-bold">{lakh(value)} <span className="text-sm font-medium text-pmuted">from ₹1 lakh</span></p>
+          <p className="num mt-1 text-sm text-pmuted">Market ({s.benchmark.name}): {lakh(bmValue)}</p>
         </div>
-        <p className={`num text-sm font-semibold ${gain >= 0 ? "up" : "down"}`}>
-          {gain >= 0 ? "▲" : "▼"} {(gain * 100).toFixed(0)}% since {first ? `${MONTHS[first.m - 1]} ${first.y}` : "start"}
-        </p>
       </div>
       <svg
         ref={ref}
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full touch-pan-y"
         role="img"
-        aria-label={`${s.name} model growth of 100, log scale. Ends at ${vals[vals.length - 1].toFixed(0)}.`}
+        aria-label={`How ₹1 lakh grew in ${s.name}, tested on past data.`}
         onPointerMove={(e) => move(e.clientX)}
         onPointerLeave={() => setHov(null)}
       >
@@ -67,7 +68,7 @@ export default function Curve({ s }: { s: Pick<Strategy, "name" | "slug" | "grow
         {ticks.map((t) => (
           <g key={t}>
             <line x1={PL} x2={W - PR} y1={y(t)} y2={y(t)} stroke="var(--page-line)" strokeDasharray="3 4" />
-            <text x={W - PR} y={y(t) - 4} textAnchor="end" fontSize="10" fill="var(--page-muted)">₹{t}</text>
+            <text x={W - PR} y={y(t) - 4} textAnchor="end" fontSize="10" fill="var(--page-muted)">{`₹${t / 100} lakh`}</text>
           </g>
         ))}
         <path d={`${line}L${x(vals.length - 1)},${H - PB}L${x(0)},${H - PB}Z`} fill={`url(#g-${s.slug})`} />
@@ -84,8 +85,8 @@ export default function Curve({ s }: { s: Pick<Strategy, "name" | "slug" | "grow
         )}
       </svg>
       <figcaption className="mt-3 text-xs leading-relaxed text-pmuted">
-        Solid line: {s.name}. Dashed line: {s.benchmark.name}. Log scale, monthly returns, same months for both.
-        {s.growth && ` Back tested from ${s.growth.start} to ${s.growth.end}.`} Model, back tested; not a promise of future returns.
+        Solid line: {s.name}. Dotted line: market. Equal steps up the chart mean equal % growth.
+        {s.growth && ` Old prices from ${s.growth.start} to ${s.growth.end}.`} Not a promise of future growth.
       </figcaption>
     </figure>
   );

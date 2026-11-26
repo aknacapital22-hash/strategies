@@ -4,12 +4,12 @@ export default function PortfolioTable({ rows }: { rows: EnginePortfolioRow[] })
   return (
     <div className="card overflow-x-auto">
       <table className="num w-full min-w-[480px] text-left text-sm">
-        <caption className="sr-only">Latest model portfolio</caption>
+        <caption className="sr-only">What is in the basket now</caption>
         <thead>
           <tr className="border-b border-pline text-xs uppercase tracking-wide text-pmuted">
-            <th scope="col" className="p-3 font-medium">Stock</th>
-            <th scope="col" className="p-3 font-medium">Weight</th>
-            <th scope="col" className="p-3 font-medium">Sector</th>
+            <th scope="col" className="p-3 font-medium">Share</th>
+            <th scope="col" className="p-3 font-medium">Share of your money</th>
+            <th scope="col" className="p-3 font-medium">Industry</th>
             <th scope="col" className="p-3 text-right font-medium">Last price</th>
           </tr>
         </thead>

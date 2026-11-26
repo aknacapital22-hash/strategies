@@ -20,18 +20,20 @@ export default function SectionNav({ items, action }: { items: [string, string][
 
   return (
     <nav aria-label="Sections" className="sticky top-[68px] z-30 mt-10 border-y border-pline bg-page/85 backdrop-blur-xl">
-      <div className="wrap flex items-center gap-1 overflow-x-auto py-2">
+      <div className="wrap flex items-center gap-2 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [scrollbar-width:none]">
         {items.map(([id, label]) => (
           <a
             key={id}
             href={`#${id}`}
             aria-current={active === id ? "true" : undefined}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${active === id ? "bg-ptext text-page" : "text-pmuted hover:bg-page3 hover:text-ptext"}`}
+            className={`whitespace-nowrap rounded-full px-2.5 py-2 text-sm sm:px-4 font-medium transition-colors ${active === id ? "bg-ptext text-page" : "text-pmuted hover:bg-page3 hover:text-ptext"}`}
           >
             {label}
           </a>
         ))}
-        <div className="ml-auto">{action}</div>
+        </div>
+        <div className="shrink-0">{action}</div>
       </div>
     </nav>
   );

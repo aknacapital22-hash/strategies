@@ -60,7 +60,6 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-outfit), var(--font-jakarta), s
 p { text-wrap: pretty; }
 .num { font-variant-numeric: tabular-nums; }
 /* Accent words inside headings: the display face, upright (no serif italic). */
-.display, .display.italic { font-family: var(--font-stack), var(--font-outfit), sans-serif; font-style: normal; font-weight: 500; letter-spacing: -0.01em; }
 
 :focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 6px; }
 
@@ -193,3 +192,10 @@ input[type="range"] { accent-color: var(--accent-ink); }
 .logo-dark { display: none !important; }
 :root[data-theme="dark"] .logo-light { display: none !important; }
 :root[data-theme="dark"] .logo-dark { display: block !important; }
+
+/* Pages are built for visitors. For someone signed in, the visitor's buttons stay hidden while their own load. */
+.signed-in .anon-only { visibility: hidden; }
+
+/* Industry pie (components/SectorPie.tsx): a fixed colour order, checked for colour blindness in both themes. */
+:root { --pie-1: #2a78d6; --pie-2: #eb6834; --pie-3: #1baf7a; --pie-4: #eda100; --pie-5: #e87ba4; --pie-6: #008300; --pie-7: #6250d6; --pie-8: #e34948; --pie-other: #8a8f98; --pie-outside: #cdd0d6; }
+[data-theme="dark"] { --pie-1: #3987e5; --pie-2: #d95926; --pie-3: #199e70; --pie-4: #c98500; --pie-5: #d55181; --pie-6: #0ca30c; --pie-7: #9085e9; --pie-8: #e66767; --pie-other: #7d8890; --pie-outside: #3d4a4b; }

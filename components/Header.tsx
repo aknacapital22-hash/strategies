@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 
 const nav = [
-  { label: "Product", href: "/product" },
-  { label: "Strategies", href: "/strategies" },
+  { label: "How it works", href: "/product" },
+  { label: "Baskets", href: "/strategies" },
   { label: "My baskets", href: "/portfolios" },
   { label: "Pricing", href: "/pricing" },
   { label: "Learn", href: "/learn" },

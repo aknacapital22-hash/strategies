@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { PLANS, YEARLY_SAVING, costPercent, inr, perMonth, yearlyCost, type PlanId } from "@/lib/pricing";
+import { BASKET_PLANS, PLANS, costPercent, inr, perMonth, yearlyCost, type PlanId } from "@/lib/pricing";
 
 const presets = [300000, 500000, 1000000, 2500000];
 
 export default function FeeCalculator() {
   const [plan, setPlan] = useState<PlanId>("year");
-  const [baskets, setBaskets] = useState(1);
+  const baskets = 1; // sold one basket at a time
   const [capital, setCapital] = useState(500000);
 
   const p = PLANS[plan];
@@ -18,23 +18,18 @@ export default function FeeCalculator() {
     <div className="card p-6 md:p-8">
       <fieldset>
         <legend className="text-sm font-medium">Plan</legend>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          {([PLANS.quarter, PLANS.year] as const).map((x) => (
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          {BASKET_PLANS.map((x) => (
             <button
               key={x.id} type="button" aria-pressed={plan === x.id} onClick={() => setPlan(x.id)}
               className={`rounded-xl border px-4 py-3 text-left transition ${plan === x.id ? "border-[var(--accent-ink)] bg-aink/5" : "border-pline"}`}
             >
-              <span className="block text-sm font-semibold">{x.name}{x.id === "year" && <span className="up ml-2 text-[11px]">Save {inr(YEARLY_SAVING)}</span>}</span>
+              <span className="block text-sm font-semibold">{x.name}{x.id === "year" && <span className="up ml-1 text-[11px]">Best</span>}</span>
               <span className="num mt-1 block text-lg font-bold">{inr(x.price)}<span className="text-xs font-medium text-pmuted"> / {x.per}</span></span>
             </button>
           ))}
         </div>
       </fieldset>
-
-      <div className="mt-6">
-        <label htmlFor="baskets" className="text-sm font-medium">Baskets: <span className="num">{baskets}</span></label>
-        <input id="baskets" type="range" min={1} max={15} value={baskets} onChange={(e) => setBaskets(Number(e.target.value))} className="mt-2 w-full" />
-      </div>
 
       <div className="mt-6">
         <label className="text-sm font-medium" htmlFor="cap">Total amount you invest (₹)</label>
@@ -68,8 +63,8 @@ export default function FeeCalculator() {
         </div>
       </div>
       <p className="mt-5 text-xs leading-relaxed text-pmuted">
-        {baskets} basket{baskets > 1 ? "s" : ""} × {inr(p.price)} = {inr(total)} per {p.per}. The price is flat, so it weighs less on a larger amount.
-        Brokerage, STT, exchange charges and GST are separate, charged by your broker.
+        One basket costs {inr(total)} per {p.per}. The price is flat, so it weighs less on a larger amount.
+        Your broker&apos;s fees and government taxes are separate.
       </p>
     </div>
   );

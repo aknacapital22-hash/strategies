@@ -23,17 +23,17 @@ function Row({ e }: { e: Entry }) {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="num font-semibold">{dateIN(e.signal)}</p>
         {e.status === "pending" ? (
-          <span className="rounded-full bg-aink/10 px-2.5 py-1 text-xs font-semibold text-aink">Latest signal · trades at the next session</span>
+          <span className="rounded-full bg-aink/10 px-2.5 py-1 text-xs font-semibold text-aink">Latest change · to be done on the next market day</span>
         ) : (
-          <span className="rounded-full bg-page3 px-2.5 py-1 text-xs font-semibold text-pmuted">Rebalanced{e.exec ? ` on ${dateIN(e.exec)}` : ""}</span>
+          <span className="rounded-full bg-page3 px-2.5 py-1 text-xs font-semibold text-pmuted">Changed{e.exec ? ` on ${dateIN(e.exec)}` : ""}</span>
         )}
       </div>
       {none ? (
-        <p className="mt-3 text-sm text-pmuted">No changes. The same {e.size} stocks stayed.</p>
+        <p className="mt-3 text-sm text-pmuted">No changes. The same {e.size} holdings stayed.</p>
       ) : (
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-pmuted">In ({e.in.length})</p><Chips names={e.in} kind="in" /></div>
-          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-pmuted">Out ({e.out.length})</p><Chips names={e.out} kind="out" /></div>
+          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-pmuted">Added: buy ({e.in.length})</p><Chips names={e.in} kind="in" /></div>
+          <div><p className="mb-2 text-xs font-semibold uppercase tracking-wide text-pmuted">Removed: sell ({e.out.length})</p><Chips names={e.out} kind="out" /></div>
         </div>
       )}
     </li>
@@ -47,14 +47,14 @@ export default function RebalanceLog({ log, schedule }: { log: Entry[]; schedule
   const shown = [first, second].filter(Boolean) as Entry[];
   return (
     <section id="changes" aria-label="Rebalance history" className="scroll-mt-32">
-      <h3 className="text-xl font-semibold">Rebalance history</h3>
+      <h3 className="text-xl font-semibold">Earlier list updates</h3>
       <p className="mt-1 text-sm text-pmuted">
-        This basket rebalances every {schedule.everyWeeks} week{schedule.everyWeeks > 1 ? "s" : ""}. Next rebalance: <b className="num text-ptext" data-next>{dateIN(schedule.next)}</b>.
+        This basket&apos;s list is checked every {schedule.everyWeeks} week{schedule.everyWeeks > 1 ? "s" : ""}. Next update: <b className="num text-ptext" data-next>{dateIN(schedule.next)}</b>.
       </p>
       <ol className="mt-4 space-y-3">{shown.map((e) => <Row key={e.signal} e={e} />)}</ol>
       {rest.length > 0 && (
         <details className="mt-3">
-          <summary className="cursor-pointer text-sm font-medium text-aink">Earlier rebalances ({rest.length})</summary>
+          <summary className="cursor-pointer text-sm font-medium text-aink">Earlier changes ({rest.length})</summary>
           <ol className="mt-3 space-y-3">{rest.map((e) => <Row key={e.signal} e={e} />)}</ol>
         </details>
       )}

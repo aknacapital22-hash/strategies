@@ -7,8 +7,8 @@ import { requestsFor } from "./store";
 /** The user and their waiting requests, read once per page however many buttons ask. */
 export const getViewer = cache(async () => {
   const user = await getUser();
-  const pending = user ? (await requestsFor(user.id)).filter((r) => r.status === "pending") : [];
-  return { user, pending };
+  const requests = user ? await requestsFor(user.id) : []; // newest first
+  return { user, requests, pending: requests.filter((r) => r.status === "pending") };
 });
 
 export async function getBasket(slug: string): Promise<{ user: PublicUser | null; state: BasketState }> {

@@ -37,7 +37,7 @@ export function LoginForm({ next, notice, demo }: { next?: string; notice?: stri
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   return (
-    <Shell title="Welcome back" sub="Log in to see the holdings of the baskets you subscribe to.">
+    <Shell title="Welcome back" sub="Log in to see what is inside your baskets.">
       {notice && <p role="status" className="rounded-xl bg-[var(--gain-ink)]/10 px-4 py-3 text-sm up">{notice}</p>}
       <form action={action} className="space-y-5">
         <input type="hidden" name="next" value={next ?? ""} />
@@ -109,7 +109,7 @@ export function SignupForm({ next }: { next?: string }) {
     );
   }
   return (
-    <Shell title="Create your account" sub="Free to join. Subscribe to a basket to see its holdings.">
+    <Shell title="Create your account" sub="Joining is free. Get a plan to see what is inside a basket.">
       <form action={action} className="space-y-5">
         <input type="hidden" name="next" value={next ?? ""} />
         <label className="block text-sm font-medium">
@@ -138,6 +138,7 @@ export function SignupForm({ next }: { next?: string }) {
           <input name="confirm" type="password" required minLength={8} autoComplete="new-password" className={field} />
         </label>
         <Msg s={state} />
+        <p className="text-xs text-pmuted">By creating an account, you agree to our <Link href="/terms" className="font-medium text-aink hover:underline">Terms</Link>. See our <Link href="/privacy" className="font-medium text-aink hover:underline">Privacy Policy</Link>.</p>
         <Submit>Email me a code</Submit>
       </form>
       <p className="text-center text-sm text-pmuted">Already have an account? <Link href={`/login${next ? `?next=${encodeURIComponent(next)}` : ""}`} className="font-medium text-aink hover:underline">Log in</Link></p>

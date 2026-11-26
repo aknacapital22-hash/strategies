@@ -1,4 +1,5 @@
 import { pct } from "@/lib/strategies";
+import { riskWord } from "@/lib/plain";
 
 /** Year-by-year returns as bars either side of a zero line: strategy (teal) against its index (grey). */
 export function YearBars({ rows, name, bmName }: { rows: { label: string; a: number; b: number }[]; name: string; bmName: string }) {
@@ -60,11 +61,11 @@ const LEVELS = ["Moderate", "Moderately High", "High", "Very High"];
 export function RiskMeter({ risk }: { risk: string }) {
   const n = Math.max(1, LEVELS.indexOf(risk) + 1);
   return (
-    <div role="img" aria-label={`${risk} risk, ${n} of 4`}>
+    <div role="img" aria-label={`${riskWord(risk)} risk, ${n} of 4`}>
       <div className="flex gap-1">
         {LEVELS.map((l, i) => <span key={l} className={`h-2 flex-1 rounded-full ${i < n ? (n >= 3 ? "bg-red-300" : "bg-white") : "bg-white/20"}`} />)}
       </div>
-      <p className="mt-1.5 text-sm font-bold">{risk}</p>
+      <p className="mt-1.5 text-sm font-bold">{riskWord(risk)}</p>
     </div>
   );
 }
@@ -81,17 +82,17 @@ export function RollingRange({ rows }: { rows: Roll[] }) {
       {rows.map((r) => (
         <div key={r.label}>
           <div className="flex items-baseline justify-between gap-3 text-sm">
-            <span className="font-semibold">{r.label}</span>
-            {r.positive !== null && <span className="chip !py-0.5">{r.positive}% positive</span>}
+            <span className="font-semibold">{r.label.replace("Any 1 year, return", "Staying any 1 year").replace("Any 3 years, CAGR", "Staying any 3 years (per year)")}</span>
+            {r.positive !== null && <span className="chip !py-0.5">Made money {r.positive}% of the time</span>}
           </div>
-          <div className="relative mt-3 h-3 rounded-full bg-page3" role="img" aria-label={`Worst ${pct(r.worst)}, median ${pct(r.median)}, best ${pct(r.best)}`}>
+          <div className="relative mt-3 h-3 rounded-full bg-page3" role="img" aria-label={`Worst ${pct(r.worst)}, middle ${pct(r.median)}, best ${pct(r.best)}`}>
             <span className="absolute h-3 rounded-full bg-aink/30" style={{ left: `${at(r.worst)}%`, width: `${at(r.best) - at(r.worst)}%` }} />
             {lo < 0 && <span className="absolute -top-1 h-5 w-px bg-[var(--page-text)] opacity-40" style={{ left: `${at(0)}%` }} />}
             <span className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[var(--page-2)] bg-aink" style={{ left: `${at(r.median)}%` }} />
           </div>
           <dl className="num mt-2 grid grid-cols-3 text-xs">
             <div><dt className="text-pmuted">Worst</dt><dd className={`font-semibold ${r.worst < 0 ? "down" : "up"}`}>{r.worst < 0 ? "▼" : "▲"} {pct(r.worst)}</dd></div>
-            <div className="text-center"><dt className="text-pmuted">Median</dt><dd className="font-semibold">{pct(r.median)}</dd></div>
+            <div className="text-center"><dt className="text-pmuted">Middle</dt><dd className="font-semibold">{pct(r.median)}</dd></div>
             <div className="text-right"><dt className="text-pmuted">Best</dt><dd className="up font-semibold">▲ {pct(r.best)}</dd></div>
           </dl>
         </div>

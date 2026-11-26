@@ -38,6 +38,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip # fewer Actions minutes: packages are not downloaded again each run
+          cache-dependency-path: engine/requirements.txt
 
       - name: Install engine packages
         run: pip install -r engine/requirements.txt
@@ -70,6 +72,7 @@ jobs:
         if: steps.check.outputs.publish == 'true'
         with:
           node-version: "22"
+          cache: npm
 
       - name: Make sure the website still builds with the new data
         if: steps.check.outputs.publish == 'true'

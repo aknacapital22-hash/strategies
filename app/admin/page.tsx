@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getAdmin } from "@/lib/auth/session";
 import { allRequests, allUsers } from "@/lib/auth/store";
 import { strategies } from "@/lib/strategies";
-import { ALL_ACCESS, PLANS, dateIN, inr } from "@/lib/pricing";
+import { PLANS, dateIN, inr } from "@/lib/pricing";
 import { shortId } from "@/lib/payment";
 import { activateSubscription, approveRequest, rejectRequest, revokeSubscription } from "./actions";
 import ActivatePlanForm from "@/components/ActivatePlanForm";
@@ -18,8 +18,7 @@ const problems: Record<string, string> = {
   used: "That transaction ID is already attached to another request. Nothing was changed.",
   invalid: "Check the basket, plan, amount (whole rupees) and transaction ID (6 to 30 letters or digits). Nothing was changed.",
 };
-const ALL_ACCESS_NAME = "All Access (every basket)";
-const names: Record<string, string> = { ...Object.fromEntries(strategies.map((s) => [s.slug, s.name])), [ALL_ACCESS]: ALL_ACCESS_NAME };
+const names: Record<string, string> = Object.fromEntries(strategies.map((s) => [s.slug, s.name]));
 const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
 const th = "p-3 text-left text-xs font-medium uppercase tracking-wide text-pmuted";
@@ -52,7 +51,7 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
   // A mobile number is only searched when the query looks like one (with or without +91, spaces or dashes).
   const digits = /^[+\d\s-]+$/.test(q) ? q.replace(/\D/g, "").replace(/^91(?=\d{10}$)/, "") : "";
   const match = (u?: { name: string; email: string; phone?: string }) => !q || (!!u && (u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || (digits !== "" && (u.phone ?? "").includes(digits))));
-  const options = [{ slug: ALL_ACCESS, name: ALL_ACCESS_NAME }, ...strategies.map((s) => ({ slug: s.slug, name: s.name })).sort((a, b) => a.name.localeCompare(b.name))];
+  const options = strategies.map((s) => ({ slug: s.slug, name: s.name })).sort((a, b) => a.name.localeCompare(b.name));
   // The success message is read back from the stored plan, so a hand-typed address cannot claim an activation.
   const done = sp.result === "ok" ? byId.get(sp.user ?? "") : undefined;
   const doneSub = done?.subs.find((s) => s.slug === sp.basket);
@@ -100,6 +99,15 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
           <button className="btn btn-ghost !min-h-0 !py-2">Search</button>
         </form>
       </div>
+
+      {tab !== "requests" && (done && doneSub || problem) && (
+        <div className="mt-6">
+          {done && doneSub && (
+            <p role="status" className="card mb-3 p-4 text-sm"><span className="up font-semibold">▲ Plan activated.</span> {done.name} has {names[doneSub.slug] ?? doneSub.slug} until {dateIN(doneSub.expires)}. {tab === "others" && <Link href={`/admin?tab=subscribers&q=${encodeURIComponent(done.email)}`} className="font-medium text-aink hover:underline">View in Subscribers →</Link>}</p>
+          )}
+          {problem && <p role="alert" className="card down mb-3 p-4 text-sm font-medium">{problem}</p>}
+        </div>
+      )}
 
       {tab === "requests" && (
         <section className="mt-6" aria-label="Requests">
@@ -157,6 +165,7 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
 
       {tab === "subscribers" && (
         <section className="mt-6" aria-label="Subscribers">
+          <p className="mb-3 text-sm text-pmuted">To give someone another basket, use <strong>Add basket</strong> under their name. No request is needed.</p>
           <div className="card overflow-x-auto">
             <table className="num w-full min-w-[820px] text-sm">
               <caption className="sr-only">Subscribers</caption>
@@ -180,6 +189,25 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
                           </li>
                         ))}
                       </ul>
+                      <div className="mt-3">
+                        {(() => {
+                          // only baskets they do not have right now: an active one is never granted twice
+                          const more = options.filter((o) => !u.subs.some((sb) => sb.slug === o.slug));
+                          if (!more.length) return <span className="text-xs text-pmuted">Has every basket.</span>;
+                          return (
+                            <ActivatePlanForm
+                              key={`${u.id}:${u.subs.length}`} // starts fresh once a basket has been added
+                              action={activateSubscription}
+                              user={{ id: u.id, name: u.name }}
+                              q={q}
+                              tab="subscribers"
+                              label="+ Add basket"
+                              baskets={more}
+                              waiting={reqs.filter((r) => r.userId === u.id && r.status === "pending" && more.some((o) => o.slug === r.slug)).map((r) => ({ slug: r.slug, plan: r.plan, amount: r.amount }))}
+                            />
+                          );
+                        })()}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -191,10 +219,6 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
 
       {tab === "others" && (
         <section className="mt-6" aria-label="Non-subscribers">
-          {done && doneSub && (
-            <p role="status" className="card mb-3 p-4 text-sm"><span className="up font-semibold">▲ Plan activated.</span> {done.name} has {names[doneSub.slug] ?? doneSub.slug} until {dateIN(doneSub.expires)}. <Link href={`/admin?tab=subscribers&q=${encodeURIComponent(done.email)}`} className="font-medium text-aink hover:underline">View in Subscribers →</Link></p>
-          )}
-          {problem && <p role="alert" className="card down mb-3 p-4 text-sm font-medium">{problem}</p>}
           <p className="mb-3 text-sm text-pmuted">
             Search by name, email or mobile number, then use <strong>Activate plan</strong>. No request is needed.
             {q && <> Showing results for “{q}”. <Link href="/admin?tab=others" className="font-medium text-aink hover:underline">Clear search</Link>.</>}
@@ -217,6 +241,7 @@ async function Panel({ searchParams }: { searchParams: Promise<SP> }) {
                         action={activateSubscription}
                         user={{ id: u.id, name: u.name }}
                         q={q}
+                        tab="others"
                         baskets={options}
                         waiting={reqs.filter((r) => r.userId === u.id && r.status === "pending").map((r) => ({ slug: r.slug, plan: r.plan, amount: r.amount }))}
                       />

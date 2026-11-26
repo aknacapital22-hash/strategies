@@ -1,14 +1,17 @@
 import crypto from "node:crypto";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { activeSubs, authSecret, findById } from "./store";
+import { HINT_COOKIE } from "../viewerHint";
 import { withAllAccess } from "../subscription";
 import { ALL_ACCESS } from "../pricing";
 import strategies from "../strategies.json";
 
 const BASKETS = (strategies as { slug: string }[]).map((s) => s.slug);
 
-export const COOKIE = "akna_session";
+// Renamed from akna_session when the hint cookie arrived, so every signed-in person gets both on their next log-in.
+export const COOKIE = "akna_sid";
 const TTL = 60 * 60 * 24 * 7; // 7 days
 
 /** `subs` and `subExp` are what is open (All Access included). `paidBaskets` are the baskets with a plan of their own. */
@@ -37,7 +40,7 @@ function readToken(t: string | undefined): string | null {
 }
 
 /** The signed-in user, or null. Reads the request's cookies, so call it inside a <Suspense> boundary. */
-export async function getUser(): Promise<PublicUser | null> {
+export const getUser = cache(async (): Promise<PublicUser | null> => {
   const token = (await cookies()).get(COOKIE)?.value;
   await connection(); // the expiry check reads the clock, so this must run at request time, never in a prerender
   const uid = readToken(token);
@@ -45,20 +48,26 @@ export async function getUser(): Promise<PublicUser | null> {
   if (!u) return null;
   const own = activeSubs(u);
   return { id: u.id, name: u.name, email: u.email, ...withAllAccess(own, u.subExp ?? {}, BASKETS), paidBaskets: own.filter((s) => s !== ALL_ACCESS), role: u.role === "admin" ? "admin" : "user", phone: u.phone ?? "" };
-}
+});
 
 export async function startSession(uid: string) {
-  (await cookies()).set(COOKIE, makeToken(uid), {
-    httpOnly: true,
-    sameSite: "lax",
+  const u = await findById(uid);
+  const jar = await cookies();
+  const options = {
+    sameSite: "lax" as const,
     secure: process.env.AUTH_SECURE_COOKIES === "1", // set to 1 when served over https
     path: "/",
     maxAge: TTL,
-  });
+  };
+  jar.set(COOKIE, makeToken(uid), { ...options, httpOnly: true });
+  // What the header shows. The browser can read it, so showing it needs no server call. It grants nothing.
+  jar.set(HINT_COOKIE, JSON.stringify([u?.name.split(" ")[0] ?? "", u?.role === "admin" ? 1 : 0, Date.now()]), options);
 }
 
 export async function endSession() {
-  (await cookies()).delete(COOKIE);
+  const jar = await cookies();
+  jar.delete(COOKIE);
+  jar.delete(HINT_COOKIE);
 }
 
 /** Only same-site relative paths, so a login link can never bounce someone to another site. */

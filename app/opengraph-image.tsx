@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ImageResponse } from "next/og";
 
@@ -7,7 +7,7 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function Image() {
-  const mark = `data:image/png;base64,${(await readFile(path.join(process.cwd(), "public", "logo-mark.png"))).toString("base64")}`;
+  const mark = `data:image/png;base64,${readFileSync(path.join(process.cwd(), "public", "logo-mark.png")).toString("base64")}`;
   return new ImageResponse(
     (
       <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", padding: 80, background: "#fcfbf6", color: "#0b1d33" }}>
@@ -23,7 +23,7 @@ export default async function Image() {
           </div>
         </div>
         <div style={{ fontSize: 56, fontWeight: 700, marginTop: 56, lineHeight: 1.15 }}>Systematic investing for wealth creation.</div>
-        <div style={{ fontSize: 30, marginTop: 28, color: "#3b475a" }}>Research index strategies and approve rebalances in your own demat.</div>
+        <div style={{ fontSize: 30, marginTop: 28, color: "#3b475a" }}>Ready-made share baskets that follow fixed rules. You buy in your own account.</div>
       </div>
     ),
     size,
