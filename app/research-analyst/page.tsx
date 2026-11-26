@@ -7,7 +7,7 @@ export const metadata = pageMeta({ title: "Research Analyst Details", descriptio
 
 const sections: LegalSection[] = [
   { h: "Research Analyst", list: [`Name: ${RESEARCH_ANALYST.name}`, `SEBI Research Analyst registration number: ${RESEARCH_ANALYST.number}`] },
-  { h: "How lists are published", p: ["The basket lists are prepared using fixed rules. A new list is published after the Research Analyst approves it."] },
+  { h: "How lists are published", p: ["The basket lists are prepared using fixed rules, and new lists are published automatically on fixed dates."] },
   { h: "Please note", p: [
     "Registration granted by SEBI and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.",
     "Investment in securities market is subject to market risks. Read all the related documents carefully before investing.",
